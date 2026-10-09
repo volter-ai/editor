@@ -28,6 +28,7 @@
 import './blender-properties-context';
 import { liveAnimation, setLiveAnimation } from '../src/play-live';
 import { blenderViewFieldOfView } from '../src/presentation';
+import { readBlenderDisplaySettings } from './blender-display-settings';
 import {
   type BlenderRuntimeView,
   blenderModelView,
@@ -64,8 +65,6 @@ import * as THREE from 'three';
 import {
   bindModelDocument,
   blenderExecute,
-  blenderRna,
-  blenderRnaContext,
   subscribeBlenderRna,
   blenderViewShading,
   openModelDocumentBlend,
@@ -448,29 +447,8 @@ function BlenderModelViewport(props: ToolContributionProps) {
     };
     const read = async () => {
       const mine = ++revision;
-      const context = await blenderRnaContext();
-      if (!context) return;
-      const [settings, displaySettings] = await Promise.all([
-        blenderRna(`${context.scene}.view_settings`),
-        blenderRna(`${context.scene}.display_settings`),
-      ]);
-      if (cancelled || mine !== revision || settings?.kind !== 'struct' || settings.type !== 'ColorManagedViewSettings') return;
-      if (displaySettings?.kind === 'struct') {
-        const device = displaySettings.groups.flatMap(group => group.rows).find(row => row.identifier === 'display_device')?.value;
-        if (typeof device === 'string' && device !== 'sRGB')
-          throw new Error(`Blender display device ${device} has no browser display processor yet`);
-      }
-      const rows = settings.groups.flatMap(group => group.rows);
-      const transform = rows.find(row => row.identifier === 'view_transform')?.value;
-      const stops = rows.find(row => row.identifier === 'exposure')?.value;
-      const look = rows.find(row => row.identifier === 'look')?.value;
-      const gamma = rows.find(row => row.identifier === 'gamma')?.value;
-      const exposure = typeof stops === 'number' ? 2 ** stops : 1;
-      const display = {
-        transform: typeof transform === 'string' ? transform : 'AgX',
-        look: typeof look === 'string' ? look : 'None',
-        exposure, gamma: typeof gamma === 'number' ? gamma : 1,
-      };
+      const display = await readBlenderDisplaySettings();
+      if (cancelled || mine !== revision || !display) return;
       const key = JSON.stringify(display);
       if (applied?.key === key) return;
       const resolved = await createBlenderDisplayTransform(display);
@@ -945,7 +923,7 @@ function BlenderViewportArea({
             const clip = await blenderActionClip({ object: armature, action, summary: false });
             if (clip === null) throw new Error("Blender's session is not started");
             return clip;
-          }, cache, () => blenderSceneMovie());
+          }, cache, { warn: (said) => editorHost().console.warn(said, 'blender-animation'), readMovie: () => blenderSceneMovie() });
         } catch (error) {
           editorHost().console.error(`The game's animation could not be set up, so the game starts without it: ${error instanceof Error ? error.message : String(error)}`, 'blender-animation');
         }

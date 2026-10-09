@@ -21,6 +21,17 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   `cutscene` entry per start, cut, marker and end (`packages/play/README.md`, `docs/CUTSCENES.md`).
 - **A new Blender door, `scene-movie`** (`rna_scene_movie`), reads the scene's movie once per Play. The clip
   door no longer lists an action's object-transform curves as playing only in Blender.
+## 0.5.211 — a model's game as a web page
+
+- **`cyclotron export web [folder] --out <dir>`** writes a Blender-based Play game (a `.blend`, its `.play.ts`
+  and the project's `dom` UI roots) as a static page that needs no editor and no Blender
+  ([docs/WEB-EXPORT.md](docs/WEB-EXPORT.md)). The running editor dumps the model, every armature's baked
+  clips and the scene's display transform into `.volter/export/web/` (the new `blender-export-play` verb).
+  The project's Vite then builds the page around `@volter/editor-blender/web-export/web-player.ts`.
+- **`@volter/play` exports `play-runner` and `play-context`**: the play script's context and its per-frame
+  core, with no editor service. The editor's Play builds every script's context from the same module.
+- **`BlenderRuntimeView.exportFrame()`** answers the self-contained frame Play's copy is built from.
+  `playAnimation` takes a `warn` option instead of writing to the editor console itself.
 
 ## 0.5.210 — an upgrade's Next lines with no editor open
 

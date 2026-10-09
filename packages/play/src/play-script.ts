@@ -50,16 +50,6 @@
  * the bot's own keys never pass through the DOM, so they cannot take over from themselves. The
  * controller is called only here, inside the editor's runner: a game run anywhere else never
  * drives itself.
- *
- * A CUTSCENE IS THE FILE'S OWN MOVIE, PLAYED IN THE GAME (`play.cutscene`): the scene's animation
- * as the Timeline plays it — keyed objects and cameras, armatures on their NLA strips and assigned
- * actions, camera cuts at markers bound to cameras — for a span of scene frames, on the game's
- * clock (so pause, step and speed hold it too). The document lends it (`DocumentPlayAnimation.movie`)
- * and poses its copy at each frame; the runner owns the span, the camera and the log. While it
- * runs the script's `update` is still called (it decides a skip from `keys`), but the camera is
- * the movie's: whatever the script states is overwritten after its update. When it ends the
- * camera's own settings come back, and the camera blends from the movie's last shot to the pose
- * the script states, over `blend` seconds.
  */
 import { editorHost } from '@volter/sdk/host';
 import { getCurrentProject } from '@volter/sdk/kit/active-project';
@@ -96,254 +86,36 @@ import {
   takeModelPlayStep,
 } from './model-play';
 import { beginModelPlayLog } from './play-log';
-import type { DocumentPlayAnimation, DocumentPlayMovie } from '@volter/sdk/kit/document-play-extension';
+import type { DocumentPlayAnimation } from '@volter/sdk/kit/document-play-extension';
 import { materialOverrides } from './play-materials';
+import { moviePlayer } from './play-movie';
+import {
+  isModelPlayGame,
+  splitUpdateSeconds,
+  modelPlayContext,
+  type ModelPlayAutoplayController,
+  type ModelPlayContext,
+  type ModelPlayGame,
+  type ModelPlayScriptLife,
+} from './play-context';
+
+export type {
+  ModelPlayActionOptions,
+  ModelPlayAutoplayController,
+  ModelPlayAutoplayInput,
+  ModelPlayConstraintOptions,
+  ModelPlayContext,
+  ModelPlayGame,
+  ModelPlayTrackOptions,
+} from './play-context';
+
+type Script = ModelPlayScriptLife;
 interface PlayComposition {
   readonly entries: readonly string[];
   loadScript(): Promise<{ default?: unknown }>;
   reveal(): void;
   dispose(): void;
 }
-
-export interface ModelPlayContext {
-  /** The Model group: the detached copy's root. */
-  readonly root: THREE.Object3D;
-  /** The object a Blender object's name presents as, ready to be moved by `position`,
-   *  `quaternion` and `scale`; null when the file has no such object. */
-  find(name: string): THREE.Object3D | null;
-  /** The camera the stage draws with. Navigation re-poses it before each call,
-   * so a script states the whole pose every frame. The tool blends that pose
-   * during entry and holds keys empty until the camera arrives. */
-  readonly camera: THREE.Camera;
-  /** The keys held now, by `KeyboardEvent.code` (`ArrowUp`, `KeyW`, `Space`). */
-  readonly keys: ReadonlySet<string>;
-  /**
-   * Write one entry to the play log, stamped with the run's simulation time and frame
-   * (`play-log.ts`): a kind and the facts that explain it, JSON-serialisable and snapshotted
-   * now. Log transitions (a landing, a death and its cause, autoplay's choice), not every
-   * frame. Read back with `cyclotron play-log [--since <simT>] [--kind <k>] [--json]`
-   * or `editor.modelPlayLog({ since, kind })` in `eval`. Never throws, never changes the game,
-   * and does nothing once this script has been replaced or Play has stopped.
-   *
-   *     play.log('death', { cause: 'lava', at: player.position, stage });
-   */
-  log(kind: string, facts?: Record<string, unknown>): void;
-  /**
-   * Draw an object and the meshes under it in `color` (a `THREE.Color`, `'#2bff6b'`,
-   * `0x2bff6b`); an emitting surface glows in it too, an image texture is multiplied by it.
-   * `null` returns the authored colours. Other objects wearing the same Blender material keep
-   * theirs. An object is a name or one `find` answered.
-   *
-   * THE PRESENTED MATERIALS, which is why this exists: a mesh's `material` is an array with
-   * one shared `MeshPhysicalMaterial` per Blender material slot (a lone material only for an
-   * object without slots), so `material.color` is undefined, and editing an entry recolours
-   * every object wearing that Blender material. The presenter re-assigns those slots
-   * whenever it re-applies shading, `clone()` drops its shader hooks, and a node graph
-   * driving Base Color or Alpha ignores `color` and `opacity`. A tinted or faded object
-   * wears copies of its own slots, drawn from their constant inputs (a node graph's
-   * other inputs are not drawn while it does), and keeps them through a script reload. An
-   * object with a material the document cannot copy (one the script made) is left as it is,
-   * and the log says so once with a `tint-unsupported` entry.
-   */
-  tint(object: THREE.Object3D | string, color: THREE.ColorRepresentation | null): void;
-  /** Fade an object and the meshes under it to `opacity` (0 to 1); `null` returns the
-   *  authored opacity. Its colour is untouched, and the copies are `tint`'s. */
-  setOpacity(object: THREE.Object3D | string, opacity: number | null): void;
-  /**
-   * Offer this game's bot, as named BEHAVIOURS: what the bot sets out to do, each its own
-   * controller. While the person (or an agent, `play autoplay on <behaviour>`) has autoplay on in
-   * the Game panel, the chosen behaviour's controller is called before each `update` and the keys
-   * it answers are held for that update, merged into `keys`. Offer the outcomes worth checking —
-   * one that plays to win and one that loses on purpose — so a run tests an ending by saying so,
-   * not by leaving the game alone. A bare function is the one behaviour `play`. Every run has a
-   * limit in simulation seconds (`play autoplay on <behaviour> --for <seconds>`, 300 unless
-   * given): reaching it turns autoplay off and pauses the game. Autoplay is off at every Play and
-   * Restart, and a person's key or pointer in the game turns it off. One bot per script:
-   * registering again replaces it, `null` withdraws it, and it goes with the script. Never bind
-   * autoplay to a game key, and never start it from the script.
-   *
-   *     play.autoplay({
-   *       win: ({ dt }) => (car.speed < 20 ? ['ArrowUp'] : []),
-   *       lose: () => ['ArrowLeft'],   // drives off the track
-   *     });
-   */
-  autoplay(bot: ModelPlayAutoplayController | Readonly<Record<string, ModelPlayAutoplayController>> | null): void;
-  /**
-   * Set the action an object's armature plays, as Blender's `animation_data.action` does: any
-   * action in the file, by name. `object` is the armature, its skinned mesh, or an object above or
-   * below them, or its name. Each armature starts a run playing the action the file assigns it.
-   * Setting another crossfades over `fade` seconds (0.2), repeats unless `loop: false` (which
-   * holds the last frame), and plays at `speed`; setting the action already playing does nothing,
-   * so a script may set it every update from the character's state. `null` fades it out. Each
-   * change is an `action` entry in the play log; a name the file lacks is `action-unknown` once
-   * and returns false.
-   *
-   * The armature plays as Blender plays it: its NLA tracks, then this action over them, then its
-   * bone constraints, all as the file sets them (and as the Timeline shows them).
-   *
-   *     play.setAction('Hero', moving ? 'Run' : 'Idle');
-   */
-  setAction(object: THREE.Object3D | string, action: string | null, options?: ModelPlayActionOptions): boolean;
-  /**
-   * Set one of the armature's NLA tracks, by name: the `action` it plays from now (a track the
-   * file lacks is made, over the file's), its `influence` (0 to 1, reached over `fade`), or
-   * `mute`. `null` gives the track back to the file. As in Blender, an action changes only the
-   * bones it keys: an action keyed on the upper body, on a track over a running action, is an
-   * upper body that aims while the legs run. Influences set every update blend poses between
-   * authored ones (aim up, level and down by the aim's angle).
-   *
-   *     play.setTrack('Hero', 'Aim', { action: 'Aim_Upper' });
-   *     play.setTrack('Hero', 'AimUp', { action: 'Aim_Up_Upper', influence: Math.max(0, pitch) });
-   */
-  setTrack(object: THREE.Object3D | string, track: string, options: ModelPlayTrackOptions | null): boolean;
-  /**
-   * Set one bone constraint the file gives the armature, by bone and constraint name: its
-   * `influence`, or the `target` object it aims at. A constraint aims at the game's copy of its
-   * file target, so moving that object in the game moves the aim with no call at all. A game
-   * plays Damped Track; another type is refused with the reason.
-   *
-   *     play.setConstraint('Hero', 'Head', 'Look', { influence: alert ? 1 : 0 });
-   */
-  setConstraint(object: THREE.Object3D | string, bone: string, constraint: string, options: ModelPlayConstraintOptions): boolean;
-  /** The actions an object's armature can play, by name (empty without an armature). */
-  actions(object: THREE.Object3D | string): readonly string[];
-  /**
-   * Play the file's own animation for a span of scene frames, as Blender's playback plays it:
-   * every keyed object and camera (their actions and NLA strips), every armature on the file's
-   * NLA strips and assigned action, and the camera cuts at Timeline markers bound to a camera
-   * (Bind Camera to Markers), else the scene camera. `span` is a marker's name or a frame to
-   * start at (to the scene's end), `{ start, end }` with either a marker name or a frame, or
-   * nothing for the scene's whole range. It runs on the game's clock; while it runs the camera is
-   * the movie's and the script's `update` is still called, so the script decides a skip
-   * (`cut.stop()` on a key) and should hold its own player input. When it ends the camera blends
-   * back to the pose the script states; objects keep the movie's last pose, and armatures return
-   * to what the game set them to. One cutscene at a time: starting another ends this one. Each
-   * start, camera cut, marker passed and end is a `cutscene` entry in the play log.
-   *
-   *     const intro = play.cutscene('Intro', { end: 'Gameplay', onDone: () => (state = 'play') });
-   *     // in update: if (play.keys.has('Space')) intro.stop();
-   */
-  cutscene(span?: ModelPlayCutsceneSpan, options?: ModelPlayCutsceneOptions): ModelPlayCutscene;
-  /**
-   * A SEQUENCE: the same movie, scoped and placed, for what happens inside the game rather than
-   * instead of it — a set piece the player runs through, an ultimate attack, an emote. Only the
-   * objects and characters of `collection` move (everything else stays the game's); with `at`, the
-   * collection's anchor (an Empty, `anchor`, default `<collection>.Anchor`) is carried to where that
-   * game object stands, turned as it is turned; the camera stays the script's unless `camera` names
-   * one (or is `true`: the movie's marker cuts). Markers in the span are its events (`onMarker`):
-   * the frame an attack lands is a marker the script deals damage on.
-   *
-   *     play.sequence('ult', { collection: 'Ult.Orbital', at: player, end: 'ult_end',
-   *       onMarker: (m) => { if (m.name === 'ult_hit') blast(player.position); } });
-   */
-  sequence(span?: ModelPlayCutsceneSpan, options?: ModelPlaySequenceOptions): ModelPlayCutscene;
-  /** The Timeline's markers by frame, with the camera each is bound to: for a script's own
-   *  subtitles or chapter list. Empty when the document has no movie. */
-  markers(): readonly ModelPlayMarker[];
-}
-
-/** One Timeline marker. */
-export interface ModelPlayMarker {
-  readonly name: string;
-  readonly frame: number;
-  /** The camera Blender cuts to at this marker (`marker.camera`), or null. */
-  readonly camera: string | null;
-}
-
-/** Where a cutscene starts and ends: a marker's name or a scene frame each. */
-export type ModelPlayCutsceneSpan = string | number | { readonly start?: string | number; readonly end?: string | number };
-
-export interface ModelPlayCutsceneOptions {
-  /** Where it ends when `span` names only its start: a marker's name or a frame (the scene's end). */
-  readonly end?: string | number;
-  /** Look through this camera object the whole time, instead of the marker cuts and the scene camera. */
-  readonly camera?: string;
-  /** Seconds the camera blends back to the script's own when it ends (0.5); 0 cuts. */
-  readonly blend?: number;
-  /** Playback rate, 1 is the scene's own frame rate. */
-  readonly speed?: number;
-  /** Called once when it ends, played through or stopped. */
-  readonly onDone?: (result: ModelPlayCutsceneResult) => void;
-  /** Called as the movie reaches each marker in the span (the start's own included): subtitles. */
-  readonly onMarker?: (marker: ModelPlayMarker) => void;
-}
-
-export interface ModelPlaySequenceOptions extends Omit<ModelPlayCutsceneOptions, 'camera'> {
-  /** The collection it drives: only its objects and characters move. */
-  readonly collection?: string;
-  /** Where it plays: its anchor is carried to this game object (or object name), turned as it is. */
-  readonly at?: THREE.Object3D | string;
-  /** The file's object it is authored around (default `<collection>.Anchor`). */
-  readonly anchor?: string;
-  /** The camera: the script's own (false, the default), the movie's marker cuts (true), or one camera object. */
-  readonly camera?: string | boolean;
-}
-
-export interface ModelPlayCutsceneResult {
-  /** Stopped before its end (by `stop`, another cutscene, or the script going away). */
-  readonly skipped: boolean;
-  /** The scene frame it ended on. */
-  readonly frame: number;
-  /** Why it never played (an unknown marker, no movie), when it did not. */
-  readonly refused?: string;
-}
-
-/** A running cutscene. */
-export interface ModelPlayCutscene {
-  /** The scene frame showing now, fractional between whole frames. */
-  readonly frame: number;
-  readonly playing: boolean;
-  /** The last marker it reached, or null before any. */
-  readonly marker: ModelPlayMarker | null;
-  /** Settles when it ends, as `onDone` is called. */
-  readonly done: Promise<ModelPlayCutsceneResult>;
-  /** End it now. `'end'` (the default) poses the movie's last frame first, so what the cutscene
-   *  does (a door it opens) is done; `'here'` leaves everything where it is. */
-  stop(at?: 'end' | 'here'): void;
-}
-
-export interface ModelPlayActionOptions {
-  readonly loop?: boolean;
-  readonly fade?: number;
-  readonly speed?: number;
-  /** Start again from the first frame when this action is already playing. */
-  readonly restart?: boolean;
-}
-
-export interface ModelPlayTrackOptions extends ModelPlayActionOptions {
-  /** The action the track plays from now; absent, what the file gives it. */
-  readonly action?: string;
-  readonly influence?: number;
-  readonly mute?: boolean;
-}
-
-export interface ModelPlayConstraintOptions {
-  readonly influence?: number;
-  /** The object it aims at (or its name) instead of the file's target. */
-  readonly target?: THREE.Object3D | string | null;
-}
-
-/** What the bot is handed before each `update` it drives. */
-export interface ModelPlayAutoplayInput {
-  /** The behaviour driving (`play autoplay on <behaviour>`), for a controller shared by several. */
-  readonly behavior: string;
-  /** The `dt` the coming `update` is handed. */
-  readonly dt: number;
-  /** Simulation seconds and the update's number, as that update's log entries carry them. */
-  readonly simT: number;
-  readonly tick: number;
-  /** The keys the person holds, by `KeyboardEvent.code`; the bot's are merged with them. */
-  readonly keys: ReadonlySet<string>;
-}
-/**
- * A game's bot: the keys (`KeyboardEvent.code`) it holds for the coming update — or those keys
- * with what it is doing now, `{ keys, state: 'heading to nest 2' }`. The state is the bot
- * explaining itself: the Game panel shows it beside the driver, `play state` reports it, and
- * each change is a `bot-state` entry in the play log. Say intentions and their reasons (a goal,
- * a target, why it is waiting), not per-frame numbers.
- */
-export type ModelPlayAutoplayController = (input: ModelPlayAutoplayInput) =>
-  Iterable<string> | { readonly keys?: Iterable<string> | null; readonly state?: string | null } | null | undefined;
 
 /** The longest bot state kept: a line for the panel, not a report. */
 const BOT_STATE_CHARACTERS = 160;
@@ -357,97 +129,25 @@ function botAnswer(answer: ReturnType<ModelPlayAutoplayController>): { keys: Ite
   return { keys: keys ?? [], state: said };
 }
 
-export interface ModelPlayGame {
-  /** Once per drawn frame, with the simulation seconds since the last call (at most a tenth).
-   *  Not called while the game is paused; called once per Step; at a speed other than 1× the
-   *  seconds are scaled, and a fast frame may call it more than once. */
-  update(deltaSeconds: number): void;
-  dispose?(): void;
-}
-
-/** A cutscene the runner plays (`ModelPlayContext.cutscene`). */
-interface Cutscene {
-  readonly owner: Script;
-  readonly start: number;
-  readonly end: number;
-  readonly fps: number;
-  readonly speed: number;
-  readonly blend: number;
-  /** The camera it looks through throughout, or null for the movie's own cuts. */
-  readonly camera: string | null;
-  /** Whether it takes the camera at all (a sequence may leave it to the script). */
-  readonly takesCamera: boolean;
-  /** What it drives and where (a sequence's collection and placement). */
-  readonly scope: { readonly collection?: string; readonly at?: unknown; readonly anchor?: string } | undefined;
-  elapsed: number;
-  frame: number;
-  /** The frame of the last marker said. */
-  passed: number;
-  marker: ModelPlayMarker | null;
-  /** The camera looked through last (undefined before the first frame). */
-  shot: string | null | undefined;
-  playing: boolean;
-  /** Put the camera's own settings back. */
-  readonly restore: () => void;
-  readonly resolve: (result: ModelPlayCutsceneResult) => void;
-  readonly onDone: ((result: ModelPlayCutsceneResult) => void) | undefined;
-  readonly onMarker: ((marker: ModelPlayMarker) => void) | undefined;
-}
-
-/** One script's lifetime: `value` until it is replaced, fails or the run stops; `bot` is what it
- *  offered `play.autoplay`; `unknown` the object names it asked for that the model lacks, each
- *  logged once — per script, so a typo that survives a reload is said again for the new one. */
-interface Script {
-  value: boolean;
-  /** The bot's behaviours by name, in the order offered; null without a bot. */
-  bot: Readonly<Record<string, ModelPlayAutoplayController>> | null;
-  readonly unknown: Set<string>;
-}
-
 /** The behaviour names a script's bot offers, in its order. */
 function behaviorsOf(script: Script | undefined): string[] {
   return script?.bot ? Object.keys(script.bot) : [];
 }
 
-/** `play.autoplay`'s argument as behaviours by name: a bare function is the one behaviour `play`. */
-function botBehaviors(bot: unknown): Readonly<Record<string, ModelPlayAutoplayController>> | null {
-  if (bot === null) return null;
-  if (typeof bot === 'function') return { play: bot as ModelPlayAutoplayController };
-  if (typeof bot === 'object' && !Array.isArray(bot)) {
-    const entries = Object.entries(bot as Record<string, unknown>);
-    if (entries.length === 0) throw new Error('play.autoplay was given no behaviours: offer at least one, `{ win: (input) => keys }`.');
-    for (const [name, controller] of entries) {
-      if (!/^[A-Za-z][\w-]{0,39}$/.test(name)) throw new Error(`play.autoplay behaviour "${name}" is not a name: letters, digits, - and _, starting with a letter.`);
-      if (typeof controller !== 'function') throw new Error(`play.autoplay behaviour "${name}" is not a function (the controller).`);
-    }
-    return Object.freeze({ ...(bot as Record<string, ModelPlayAutoplayController>) });
-  }
-  throw new Error('play.autoplay takes a function (the bot), its behaviours by name (`{ win, lose }`), or null.');
-}
-
-/** The longest `dt` one update is handed; longer scaled frames are split (`frameUpdates`). */
-const MAX_UPDATE_SECONDS = 0.1;
-
 /**
  * THE UPDATES THIS DRAWN FRAME RUNS, as the `dt` each is handed: none while paused, one nominal
  * frame for a Step, and otherwise the frame's seconds times the speed, split into equal parts of
- * at most {@link MAX_UPDATE_SECONDS}.
+ * at most a tenth of a second (`splitUpdateSeconds`).
  */
 function frameUpdates(documentId: string, frameSeconds: number): number[] {
   const clock = modelPlayClock(documentId);
   if (clock.paused) return takeModelPlayStep(documentId) ? [MODEL_PLAY_STEP_SECONDS] : [];
-  const scaled = frameSeconds * clock.speed;
-  const parts = Math.max(1, Math.ceil(scaled / MAX_UPDATE_SECONDS - 1e-9));
-  return Array.from({ length: parts }, () => scaled / parts);
+  return splitUpdateSeconds(frameSeconds * clock.speed);
 }
 
 /** The play script's project path for a model's `.blend`. */
 export function playScriptPath(blend: string): string {
   return blend.replace(/\.blend$/i, '') + '.play.ts';
-}
-
-function isGame(value: unknown): value is ModelPlayGame {
-  return typeof value === 'object' && value !== null && typeof (value as ModelPlayGame).update === 'function';
 }
 
 async function startGame(modulePath: string, context: ModelPlayContext, composition?: PlayComposition): Promise<ModelPlayGame> {
@@ -459,7 +159,7 @@ async function startGame(modulePath: string, context: ModelPlayContext, composit
   if (typeof namespace.default !== 'function')
     throw new Error(`${modulePath} has no default export to call: a play script default-exports (play) => ({ update(dt) }).`);
   const game: unknown = await (namespace.default as (play: ModelPlayContext) => unknown)(context);
-  if (!isGame(game))
+  if (!isModelPlayGame(game))
     throw new Error(`${modulePath}'s default export answered no game: it returns an object with update(dt).`);
   return game;
 }
@@ -487,7 +187,6 @@ export function runPlayScript(options: {
   readonly animation?: DocumentPlayAnimation | undefined;
 }): () => void {
   const { blend, root, camera, onFrame } = options;
-  const options_ = options;
   const modulePath = playScriptPath(blend);
   // A fresh copy is a fresh run: its log starts empty, its clock at zero. Writes go through
   // this run's handle, which is inert once the run has ended.
@@ -514,18 +213,23 @@ export function runPlayScript(options: {
         why: options.ownMaterial ? 'the material is not one the document presents' : 'this document lends no material copies' });
     },
   });
-  // An unknown name is the script's typo, not a reason to stop its game: said once per name, per script.
-  const objectOf = (script: Script, target: THREE.Object3D | string, call: 'tint' | 'setOpacity'): THREE.Object3D | null => {
-    if (typeof target !== 'string') return target;
-    const object = root.getObjectByName(target) ?? null;
-    if (!object && !script.unknown.has(target)) {
-      script.unknown.add(target);
-      run.append('play', 'tint-unknown-object', { object: target, call });
-    }
-    return object;
-  };
   const keys = new Set<string>();
   const heldKeys = new Set<string>();
+  /** What each NLA track was last set to, so the log says a change once. */
+  const tracks = new Map<string, string>();
+  /** The run's cutscenes and sequences: the document's movie on the game's clock (`play-movie.ts`). */
+  const movies = moviePlayer({
+    movie: () => options.animation?.movie ?? null,
+    camera,
+    root,
+    append: (source, kind, facts) => run.append(source, kind, facts),
+    report: (what, error) => report('update', `${modulePath}'s ${what} failed`, error),
+  });
+  const contextFor = (alive: Script): ModelPlayContext => modelPlayContext({
+    root, camera, keys, materials, tracks, movies,
+    animation: options.animation,
+    append: (source, kind, facts) => run.append(source, kind, facts),
+  }, alive);
   // The run this runner belongs to. A Restart moves the document to the next generation, whose
   // own runner takes over; this one must then stand down without ending the play.
   const generation = modelPlayGeneration(options.documentId);
@@ -554,285 +258,6 @@ export function runPlayScript(options: {
     seenBot = bot;
   });
   options.container.style.opacity = '0';
-  /** One script's context: its log, tint, opacity and bot do nothing once that script is gone
-   *  (replaced, failed, or the run stopped), so a stale timer cannot reach a later one. */
-  /** The object an animation call names, and the document's animation; `action-unknown` once
-   *  per object and name when either is missing. */
-  const animated = (alive: Script, object: THREE.Object3D | string, what: string | null, call: string) => {
-    const name = typeof object === 'string' ? object : object.name;
-    const unknown = (why: string): false => {
-      const key = `${name}\u0000${call}\u0000${what}`;
-      if (!alive.unknown.has(key)) { alive.unknown.add(key); run.append('play', 'action-unknown', { object: name, call, action: what, why }); }
-      return false;
-    };
-    if (!alive.value) return { ok: false as const };
-    const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
-    if (!target) return { ok: unknown('the model has no such object') };
-    if (!options_.animation) return { ok: unknown('this document lends no animation') };
-    return { ok: true as const, target, animation: options_.animation, unknown };
-  };
-  /** What each NLA track was last set to, so the log says a change once. */
-  const tracks = new Map<string, string>();
-  /** THE RUNNING CUTSCENE, and the camera blending back from the last one. */
-  let cutscene: Cutscene | null = null;
-  let handBack: ReturnType<typeof cameraTransition> | null = null;
-  const movie = (): DocumentPlayMovie | null => options_.animation?.movie ?? null;
-  /** The span a cutscene asked for, as scene frames, or why it cannot play. */
-  const spanOf = (span: ModelPlayCutsceneSpan | undefined, end: string | number | undefined):
-    { start: number; end: number } | { refused: string } => {
-    const lent = movie();
-    const scene = lent?.scene();
-    if (!lent || !scene) return { refused: lent ? "the scene's movie could not be read" : 'this document lends no movie' };
-    const markers = lent.markers();
-    const frameOf = (at: string | number | undefined, fallback: number): number | string => {
-      if (at === undefined) return fallback;
-      if (typeof at === 'number') return Number.isFinite(at) ? at : `${at} is not a frame`;
-      const marker = markers.find((one) => one.name === at);
-      return marker ? marker.frame : `the Timeline has no marker "${at}"${markers.length ? `; it has ${markers.map((one) => `"${one.name}"`).join(', ')}` : ''}`;
-    };
-    const bounds = typeof span === 'object' && span !== null ? span : { start: span, end };
-    const from = frameOf(bounds.start, scene.start);
-    if (typeof from === 'string') return { refused: from };
-    const to = frameOf(bounds.end ?? end, scene.end);
-    if (typeof to === 'string') return { refused: to };
-    if (to < from) return { refused: `it ends (frame ${to}) before it starts (frame ${from})` };
-    return { start: from, end: to };
-  };
-  /** The camera's own settings, put back when a cutscene ends. */
-  const cameraSettings = (cam: THREE.Camera) => {
-    const perspective = cam as THREE.PerspectiveCamera;
-    const saved = {
-      position: cam.position.clone(), quaternion: cam.quaternion.clone(),
-      ...(perspective.isPerspectiveCamera ? { fov: perspective.fov, near: perspective.near, far: perspective.far, zoom: perspective.zoom, filmOffset: perspective.filmOffset, view: perspective.view ? { ...perspective.view } : null } : {}),
-    };
-    return (): void => {
-      cam.position.copy(saved.position);
-      cam.quaternion.copy(saved.quaternion);
-      if (perspective.isPerspectiveCamera && saved.fov !== undefined) {
-        Object.assign(perspective, { fov: saved.fov, near: saved.near, far: saved.far, zoom: saved.zoom, filmOffset: saved.filmOffset, view: saved.view });
-      }
-      (cam as THREE.PerspectiveCamera).updateProjectionMatrix?.();
-      cam.updateMatrixWorld(true);
-    };
-  };
-  /**
-   * End the running cutscene: `at` the span's end (posed there first) or where it is. The camera
-   * is handed back (`'blend'`: its own settings restored, then blended to from the movie's last
-   * shot), restored at once (`'restore'`, another cutscene takes it), or left alone (`'leave'`,
-   * the run is ending and Play's own return owns the camera).
-   */
-  const finishCutscene = (scene: Cutscene, skipped: boolean, at: 'end' | 'here', cameraBack: 'blend' | 'restore' | 'leave'): void => {
-    if (cutscene !== scene || !scene.playing) return;
-    scene.playing = false;
-    cutscene = null;
-    const lent = movie();
-    if (at === 'end') scene.frame = scene.end;
-    const cam = camera();
-    if (lent) {
-      lent.seek(scene.frame, scene.scope);
-      // THE LAST SHOT, looked through once more, is where the hand-back blend starts.
-      const shot = scene.takesCamera ? scene.camera ?? lent.cameraAt(scene.frame) : null;
-      if (shot && cameraBack === 'blend') lent.look(cam, shot);
-      lent.seek(null);
-    }
-    if (scene.takesCamera) {
-      handBack = cameraBack === 'blend' && scene.blend > 0 ? cameraTransition(cam, { instant: false, duration: scene.blend }) : null;
-      if (cameraBack !== 'leave') scene.restore();
-    }
-    const result: ModelPlayCutsceneResult = { skipped, frame: scene.frame };
-    run.append('play', 'cutscene', { event: 'end', frame: scene.frame, skipped });
-    scene.resolve(result);
-    if (scene.owner.value && scene.onDone) {
-      try { scene.onDone(result); }
-      catch (error) { report('update', `${modulePath}'s cutscene onDone failed`, error); }
-    }
-  };
-  /** The markers between the last frame shown and this one, each said once. */
-  const passMarkers = (scene: Cutscene, upTo: number): void => {
-    const lent = movie();
-    if (!lent) return;
-    for (const marker of lent.markers()) {
-      if (marker.frame < scene.start || marker.frame > upTo || marker.frame <= scene.passed) continue;
-      scene.passed = marker.frame;
-      scene.marker = marker;
-      run.append('play', 'cutscene', { event: 'marker', marker: marker.name, frame: marker.frame });
-      if (scene.owner.value && scene.onMarker) {
-        try { scene.onMarker(marker); }
-        catch (error) { report('update', `${modulePath}'s cutscene onMarker failed`, error); }
-      }
-    }
-  };
-  /** One update's worth of the running cutscene, on the game's clock. */
-  const advanceCutscene = (dt: number): void => {
-    const scene = cutscene;
-    if (!scene) return;
-    // A cutscene goes with the script that started it (replaced, failed, or stopped).
-    if (!scene.owner.value) { finishCutscene(scene, true, 'here', 'blend'); return; }
-    scene.elapsed += dt;
-    const raw = scene.start + scene.elapsed * scene.fps * scene.speed;
-    // THE LAST FRAME IS SHOWN FOR A FRAME, as Blender's playback shows it, before it ends.
-    if (raw >= scene.end + 1 || (scene.end === scene.start && scene.elapsed > 0)) { finishCutscene(scene, false, 'end', 'blend'); return; }
-    scene.frame = Math.min(scene.end, raw);
-    passMarkers(scene, Math.floor(scene.frame));
-    movie()?.seek(scene.frame, scene.scope);
-  };
-  /** After the frame's updates: the movie's camera while a cutscene runs, else the hand-back blend. */
-  const cutsceneCamera = (deltaSeconds: number): void => {
-    const lent = movie();
-    const scene = cutscene;
-    if (scene && lent && scene.takesCamera) {
-      const shot = scene.camera ?? lent.cameraAt(scene.frame);
-      const looked = shot !== null && lent.look(camera(), shot);
-      if (shot !== scene.shot) {
-        scene.shot = shot;
-        // A camera the model lacks (a typo in `camera`) is said with the cut; the script's own
-        // camera then stays.
-        run.append('play', 'cutscene', { event: 'cut', camera: shot, frame: Math.floor(scene.frame), ...(shot !== null && !looked ? { missing: true } : {}) });
-      }
-      return;
-    }
-    if (handBack) {
-      handBack.frame(camera(), deltaSeconds);
-      if (handBack.acceptingKeys()) handBack = null;
-    }
-  };
-  const contextFor = (alive: Script): ModelPlayContext => ({
-    root,
-    find(name) {
-      const object = root.getObjectByName(name) ?? null;
-      // The presenter states each object's matrix outright; a script moves it by its parts.
-      if (object !== null && object !== root) object.matrixAutoUpdate = true;
-      return object;
-    },
-    get camera() {
-      return camera();
-    },
-    keys,
-    log(kind, facts) { if (alive.value) run.append('script', kind, facts); },
-    tint(object, color) {
-      const target = alive.value ? objectOf(alive, object, 'tint') : null;
-      if (target) materials.tint(target, color);
-    },
-    setOpacity(object, opacity) {
-      const target = alive.value ? objectOf(alive, object, 'setOpacity') : null;
-      if (target) materials.setOpacity(target, opacity);
-    },
-    autoplay(bot) {
-      const behaviors = botBehaviors(bot);
-      if (alive.value) alive.bot = behaviors;
-    },
-    setAction(object, action, options) {
-      const found = animated(alive, object, action, 'setAction');
-      if (!found.ok) return false;
-      const { target, animation } = found;
-      const before = animation.playing(target);
-      if (action === null) {
-        animation.stop(target, options?.fade);
-        if (before !== null) run.append('play', 'action', { object: target.name, action: null, from: before });
-        return true;
-      }
-      const answer = animation.play(target, action, options);
-      if (!answer.ok) return found.unknown(answer.why);
-      if (before !== action || options?.restart) run.append('play', 'action', { armature: answer.armature, action, from: before });
-      return true;
-    },
-    setTrack(object, track, options) {
-      const found = animated(alive, object, track, 'setTrack');
-      if (!found.ok) return false;
-      const answer = found.animation.track(found.target, track, options);
-      if (!answer.ok) return found.unknown(answer.why);
-      // Influences change every update; the log keeps what the track plays and whether it is muted.
-      const key = `${answer.armature} ${track}`;
-      const now = options === null ? 'file' : JSON.stringify([options.action ?? null, options.mute ?? false]);
-      if (tracks.get(key) !== now) {
-        tracks.set(key, now);
-        run.append('play', 'track', { armature: answer.armature, track, ...(options === null ? { file: true } : { action: options.action ?? null, mute: options.mute ?? false }) });
-      }
-      return true;
-    },
-    setConstraint(object, bone, constraint, options) {
-      const found = animated(alive, object, `${bone}/${constraint}`, 'setConstraint');
-      if (!found.ok) return false;
-      let aim: THREE.Object3D | null | undefined = undefined;
-      if (typeof options.target === 'string') {
-        aim = root.getObjectByName(options.target) ?? null;
-        if (!aim) return found.unknown(`the model has no object "${options.target}" to aim at`);
-      } else aim = options.target;
-      const answer = found.animation.constraint(found.target, bone, constraint, {
-        ...(options.influence === undefined ? {} : { influence: options.influence }),
-        ...(aim === undefined ? {} : { target: aim }),
-      });
-      if (!answer.ok) return found.unknown(answer.why);
-      if (aim !== undefined) run.append('play', 'constraint', { armature: answer.armature, bone, constraint, target: aim?.name ?? null });
-      return true;
-    },
-    actions(object) {
-      const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
-      return target && options_.animation ? options_.animation.clips(target) : [];
-    },
-    markers() {
-      return (movie()?.markers() ?? []).map((marker) => ({ ...marker }));
-    },
-    cutscene(span, options = {}) {
-      return begin(alive, span, options, { takesCamera: true, camera: options.camera ?? null, scope: undefined });
-    },
-    sequence(span, options = {}) {
-      const at = typeof options.at === 'string' ? root.getObjectByName(options.at) ?? undefined : options.at;
-      const scope = {
-        ...(options.collection ? { collection: options.collection } : {}),
-        ...(at ? { at, anchor: options.anchor ?? `${options.collection ?? 'Sequence'}.Anchor` } : {}),
-      };
-      return begin(alive, span, options, {
-        takesCamera: options.camera !== undefined && options.camera !== false,
-        camera: typeof options.camera === 'string' ? options.camera : null,
-        scope,
-      });
-    },
-  });
-  /** Start a cutscene or a sequence (one at a time: a running one ends where it is). */
-  const begin = (alive: Script, span: ModelPlayCutsceneSpan | undefined, options: Omit<ModelPlayCutsceneOptions, 'camera'> & { readonly collection?: string },
-    how: { readonly takesCamera: boolean; readonly camera: string | null; readonly scope: Cutscene['scope'] }): ModelPlayCutscene => {
-      let resolve!: (result: ModelPlayCutsceneResult) => void;
-      const done = new Promise<ModelPlayCutsceneResult>((settle) => { resolve = settle; });
-      let bounds = alive.value ? spanOf(span, options.end) : { refused: 'the script that asked has stopped' };
-      const lent = movie();
-      const scene = lent?.scene();
-      if (!('refused' in bounds) && options.collection && lent?.hasCollection && !lent.hasCollection(options.collection))
-        bounds = { refused: `the file has no collection "${options.collection}" holding anything that moves` };
-      if ('refused' in bounds || !lent || !scene) {
-        const refused = 'refused' in bounds ? bounds.refused : 'this document lends no movie';
-        const frame = 'refused' in bounds ? scene?.start ?? 0 : bounds.start;
-        if (alive.value) run.append('play', 'cutscene', { event: 'refused', span: span ?? null, why: refused });
-        const result: ModelPlayCutsceneResult = { skipped: true, frame, refused };
-        resolve(result);
-        if (alive.value && options.onDone) queueMicrotask(() => { if (alive.value) options.onDone!(result); });
-        return { frame, playing: false, marker: null, done, stop() {} };
-      }
-      // ONE AT A TIME: a running one ends where it is, and the new one takes over.
-      if (cutscene) finishCutscene(cutscene, true, 'here', 'restore');
-      // A hand-back still blending is cut short when the new one takes the camera.
-      if (how.takesCamera) handBack = null;
-      const restore = how.takesCamera ? cameraSettings(camera()) : () => {};
-      const running: Cutscene = {
-        owner: alive, start: bounds.start, end: bounds.end, fps: scene.fps, speed: Math.max(0, options.speed ?? 1),
-        blend: Math.max(0, options.blend ?? 0.5), camera: how.camera, takesCamera: how.takesCamera, scope: how.scope,
-        elapsed: 0, frame: bounds.start, passed: -Infinity, marker: null, shot: undefined, playing: true, restore, resolve,
-        onDone: options.onDone, onMarker: options.onMarker,
-      };
-      cutscene = running;
-      run.append('play', 'cutscene', { event: 'start', from: bounds.start, to: bounds.end, fps: scene.fps,
-        camera: how.takesCamera ? how.camera ?? lent.cameraAt(bounds.start) : null, span: span ?? null,
-        ...(options.collection ? { collection: options.collection } : {}), ...(how.scope?.at ? { placed: true } : {}) });
-      passMarkers(running, bounds.start);
-      lent.seek(bounds.start, how.scope);
-      return {
-        get frame() { return running.frame; },
-        get playing() { return running.playing; },
-        get marker() { return running.marker; },
-        done,
-        stop(at = 'end') { finishCutscene(running, true, at, 'blend'); },
-      };
-  };
   const scripts = new WeakMap<ModelPlayGame, Script>();
   let stopped = false;
   let attempt = 0;
@@ -1016,7 +441,7 @@ export function runPlayScript(options: {
       // The characters' clips move on the game's clock, one update's `dt` at a time.
       options.animation?.update(dt);
       // A cutscene's frame moves on the same clock, after the clips, so it has the last word.
-      advanceCutscene(dt);
+      movies.advance(dt);
       run.advance(dt);
       ran += 1;
       simulated += dt;
@@ -1075,7 +500,7 @@ export function runPlayScript(options: {
           setModelPlayPaused(options.documentId, true);
         }
       }
-      cutsceneCamera(deltaSeconds);
+      movies.frame(deltaSeconds);
       transition.frame(camera(), deltaSeconds);
       options.container.style.opacity = String(transition.hudOpacity());
       if (firstFrame) { firstFrame = false; options.ready(); }
@@ -1154,7 +579,7 @@ export function runPlayScript(options: {
     window.removeEventListener('keyup', onKeyUp, true);
     window.removeEventListener('blur', onBlur);
     if (pending) { dispose(pending.game, pending.composition); pending = null; }
-    if (cutscene) finishCutscene(cutscene, true, 'here', 'leave');
+    movies.end();
     end();
     materials.dispose();
     run.end({ reason: stopReason });
