@@ -13,6 +13,14 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   project's starter `AGENTS.md` follows at its next `edit`.
 - **`upgrade` with nothing to move says why its hint is there.** "If an editor still refuses this project…" read as
   a failure after "already on"; it now reads "If you ran this because an editor refused the project…".
+- **`play.cutscene` plays the file's own animation inside Model Play** and hands control back to the play
+  script: keyed objects and cameras (actions and NLA strips, a camera's lens and sensor), armatures on the
+  file's NLA strips and assigned action, and camera cuts at markers bound to cameras, else the scene camera,
+  on the game's clock. The handle answers `frame`, `playing`, `marker`, `done` and `stop()`; when it ends the
+  camera blends back to the script's. `play.markers()` lists the Timeline's markers, and the play log has a
+  `cutscene` entry per start, cut, marker and end (`packages/play/README.md`, `docs/CUTSCENES.md`).
+- **A new Blender door, `scene-movie`** (`rna_scene_movie`), reads the scene's movie once per Play. The clip
+  door no longer lists an action's object-transform curves as playing only in Blender.
 
 ## 0.5.210 — an upgrade's Next lines with no editor open
 

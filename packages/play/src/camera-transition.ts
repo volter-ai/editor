@@ -19,13 +19,14 @@ type Pose = ReturnType<typeof pose>;
  * `instant` enters already arrived: a Restart replaces a game that was on screen a frame ago,
  * and flying in again from the editing pose would show the model between two games. The return
  * on Stop still blends. */
-export function cameraTransition(editingCamera: THREE.Camera, options?: { readonly instant?: boolean }) {
+export function cameraTransition(editingCamera: THREE.Camera, options?: { readonly instant?: boolean; readonly duration?: number }) {
   const editing = pose(editingCamera);
   let phase: 'entering' | 'playing' | 'leaving' = options?.instant ? 'playing' : 'entering';
   let elapsed = 0;
   let last = editing;
   let leavingFrom = editing;
-  const duration = 0.8;
+  // A cutscene's hand-back blends for its own (shorter) time; a zero blend arrives at once.
+  const duration = Math.max(1e-3, options?.duration ?? 0.8);
   const position = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
   function blend(camera: THREE.Camera, from: Pose, to: Pose, t: number): void {

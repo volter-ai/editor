@@ -655,8 +655,121 @@ export interface BlenderActionClip {
   /** THE ACTION AS THREE.JS PLAYS IT (`session.py`'s `_three_bones`): per bone it keys, the bone's
    *  local transform at every integer frame from `clipStart` to `clipEnd`, sampled by Blender. */
   readonly bones?: readonly BlenderClipBone[];
-  /** What the action keys besides bone channels (the object's own transform, a property),
-   *  which plays only in Blender. */
+  /** What the action keys besides bone channels that plays only in Blender (a custom property, a
+   *  delta transform). The object's own transform is not listed: a game plays it in a cutscene
+   *  ({@link BlenderSceneMovie}). */
   readonly unsupported?: readonly string[];
   readonly reason?: string;
+}
+
+/** One owner's action as {@link BlenderSceneMovie} ships it: its curves whole, as the clip door
+ *  ships a bone's, each addressed by the owner's own property (`bone` is empty). */
+export interface BlenderMovieClip {
+  readonly action: string;
+  readonly clipStart: number;
+  readonly clipEnd: number;
+  readonly keysStart: number | null;
+  readonly keysEnd: number | null;
+  readonly tracks: readonly (BlenderClipCurve & { readonly bone: ''; readonly property: string; readonly index: number })[];
+  /** Curves on paths a game does not play (a custom property, a delta transform). */
+  readonly unsupported?: readonly string[];
+}
+
+/** One owner's animation stack (an object, or a camera's data), as `_armature_animation` reads an
+ *  armature's: its NLA tracks, its active action, and every action on it as a clip. */
+export interface BlenderMovieStack {
+  readonly action?: string | null;
+  /** The NLA tracks and the active action's influence, blend and extrapolation (the shape of
+   *  `BlenderArmatureAnimation`). */
+  readonly animation?: {
+    readonly useNla: boolean;
+    readonly influence: number;
+    readonly blendType: string;
+    readonly extrapolation: string;
+    readonly tweak?: boolean;
+    readonly tracks: readonly { readonly name: string; readonly mute: boolean; readonly solo: boolean; readonly strips: readonly unknown[] }[];
+  };
+  readonly clips?: Readonly<Record<string, BlenderMovieClip>>;
+}
+
+/** One object the scene's movie moves or looks through. */
+export interface BlenderMovieObject extends BlenderMovieStack {
+  readonly name: string;
+  readonly type: string;
+  readonly parent: string | null;
+  /** `Object.rotation_mode`. */
+  readonly rotationMode: string;
+  /** Its own channels as the file holds them, which a component no action keys keeps. */
+  readonly channels: {
+    readonly location: readonly number[];
+    readonly rotation_quaternion: readonly number[];
+    readonly rotation_euler: readonly number[];
+    readonly rotation_axis_angle: readonly number[];
+    readonly scale: readonly number[];
+  };
+  /** Its delta transform (the rotation as a quaternion w, x, y, z), applied as `BKE_object_to_mat4`. */
+  readonly delta: { readonly location: readonly number[]; readonly rotation: readonly number[]; readonly scale: readonly number[] };
+  /** What places its basis in its parent's space: `matrix_parent_inverse` (identity without a parent). */
+  readonly pre: readonly (readonly number[])[];
+  readonly constraints: readonly {
+    readonly name: string;
+    readonly type: string;
+    readonly enabled: boolean;
+    readonly influence: number;
+    readonly target?: string;
+    readonly trackAxis?: string;
+    readonly upAxis?: string;
+    readonly useTargetZ?: boolean;
+  }[];
+  /** A camera's data: its projection as the file holds it, and the stack that keys it. */
+  readonly camera?: BlenderMovieStack & {
+    readonly type: string;
+    readonly lens: number;
+    readonly sensor_width: number;
+    readonly sensor_height: number;
+    readonly sensor_fit: string;
+    readonly ortho_scale: number;
+    readonly clip_start: number;
+    readonly clip_end: number;
+    readonly shift_x: number;
+    readonly shift_y: number;
+    /** Disabled in renders: Blender's marker cuts skip it. */
+    readonly renderHidden: boolean;
+    /** Its projection at every scene frame, sampled by Blender (present when keyed). */
+    readonly sampled?: { readonly start: number; readonly end: number } & Readonly<Record<
+      'lens' | 'sensor_width' | 'sensor_height' | 'ortho_scale' | 'shift_x' | 'shift_y' | 'clip_start' | 'clip_end', BlenderClipColumn>>;
+  };
+  /** Its local transform at every scene frame, sampled by Blender (`session.py`'s `_sample_object`):
+   *  `hidden` (1 hidden) when its render visibility is keyed. Present when it is animated. */
+  readonly sampled?: {
+    readonly start: number;
+    readonly end: number;
+    readonly position: BlenderClipColumn;
+    readonly quaternion: BlenderClipColumn;
+    readonly scale: BlenderClipColumn;
+    readonly hidden?: BlenderClipColumn;
+  };
+  /** What it does in Blender that a game does not play. */
+  readonly unsupported?: readonly string[];
+}
+
+/**
+ * THE SCENE'S OWN ANIMATION, AS A GAME PLAYS IT (`session.py`'s `rna_scene_movie`): the movie the
+ * Timeline plays, read once so a game's cutscene can play it on the game's clock.
+ */
+export interface BlenderSceneMovie {
+  readonly scene: {
+    readonly name: string;
+    readonly start: number;
+    readonly end: number;
+    readonly fps: number;
+    readonly current: number;
+    readonly camera: string | null;
+  };
+  /** The Timeline's markers by frame, each with the camera it cuts to (`TimelineMarker.camera`). */
+  readonly markers: readonly { readonly name: string; readonly frame: number; readonly camera: string | null }[];
+  readonly objects: readonly BlenderMovieObject[];
+  /** What each collection holds (recursively), for collections holding a moving object or an
+   *  armature: a sequence scoped to a collection drives only those. */
+  readonly collections?: Readonly<Record<string, readonly string[]>>;
 }

@@ -72,6 +72,7 @@ import {
   modelDocumentMayOpen,
   modelDocumentOwnsPresentation,
   blenderActionClip,
+  blenderSceneMovie,
   blenderRnaVersion,
 } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
@@ -944,7 +945,7 @@ function BlenderViewportArea({
             const clip = await blenderActionClip({ object: armature, action, summary: false });
             if (clip === null) throw new Error("Blender's session is not started");
             return clip;
-          }, cache);
+          }, cache, () => blenderSceneMovie());
         } catch (error) {
           editorHost().console.error(`The game's animation could not be set up, so the game starts without it: ${error instanceof Error ? error.message : String(error)}`, 'blender-animation');
         }

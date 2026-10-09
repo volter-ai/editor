@@ -59,6 +59,47 @@ export interface DocumentPlayAnimation {
   update(dt: number): void;
   readonly warnings: readonly string[];
   dispose(): void;
+  /** The scene's own animation (the movie the Timeline plays), for a cutscene. Absent, the
+   *  document has no movie to lend and a cutscene ends at once, said in the log. */
+  readonly movie?: DocumentPlayMovie;
+}
+/** One Timeline marker: its name, its frame, and the camera Blender cuts to there (`marker.camera`). */
+export interface DocumentPlayMarker {
+  readonly name: string;
+  readonly frame: number;
+  readonly camera: string | null;
+}
+/** What a sequence drives and where (`DocumentPlayMovie.seek`): only a collection's objects and
+ *  characters, and the movie carried so its `anchor` stands where `at` stands. */
+export interface DocumentPlayMovieScope {
+  /** A collection of the file: only what it holds moves (the rest stays the game's). */
+  readonly collection?: string;
+  /** Place the movie so the file's object `anchor` (an Empty) stands where `at` (a game object) stands. */
+  readonly at?: unknown;
+  readonly anchor?: string;
+}
+/**
+ * THE SCENE'S MOVIE ON THE RUNNER'S COPY: what Blender's playback shows at a scene frame — every
+ * animated object, armature and camera — which a runner's cutscene holds frame by frame on the
+ * game's clock. Objects and cameras are named by the document's own names.
+ */
+export interface DocumentPlayMovie {
+  /** The scene's range, rate and camera; null while the movie is unread or could not be read. */
+  scene(): { readonly start: number; readonly end: number; readonly fps: number; readonly camera: string | null } | null;
+  /** The Timeline's markers, by frame. */
+  markers(): readonly DocumentPlayMarker[];
+  /** Hold the scene at `frame`, whole or fractional, posed now (within `scope`, only what it
+   *  names, where it says); null hands the characters back to the game (animated objects keep the
+   *  movie's last pose). */
+  seek(frame: number | null, scope?: DocumentPlayMovieScope): void;
+  /** Whether the file has a collection of this name that a sequence can drive. */
+  hasCollection?(name: string): boolean;
+  /** The camera the movie looks through at `frame`: a marker's cut, else the scene's camera. */
+  cameraAt(frame: number): string | null;
+  /** Write that camera's pose and projection, as the movie has them now, into the runner's
+   *  camera; false when the document has no such camera. */
+  look(camera: unknown, name: string): boolean;
+  readonly warnings: readonly string[];
 }
 /**
  * A RUNNING GAME'S CLOCK, as the Play tool keeps it. The numbers are the ones the runner handed
