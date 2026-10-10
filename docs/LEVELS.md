@@ -86,6 +86,32 @@ the document being edited.
 Build Settings and Unreal's maps-to-cook list do), copies each dump under `data/levels/`, and the web
 player loads them by name.
 
+### 6. Starting anywhere
+
+Every Play today runs the game from its beginning: the title, the menus, a cutscene, the drop. A
+test of one situation (a carry, an extraction, a boss) pays for all of it each time.
+
+Other engines start where you are: Godot's "Run Current Scene" (F6), Unity starting the open scene
+(or `EditorSceneManager.playModeStartScene`), Unreal's "Play From Here" (the player at a right-click
+or at the editor camera) and its level options. Studios add debug starts on top: a menu or command
+that drops you into a named situation. Three pieces, each useful to any game:
+
+1. **Start at any level** (section 3): Play may begin in a level other than the open document.
+2. **Named starts, declared by the script** beside its autoplay behaviours:
+   ```ts
+   play.starts({
+     'black-box-carry': (start) => { /* skip the menus, drop on Magma Sump, the box in hand */ },
+     'extraction': (start) => { /* objectives done, standing at the pad */ },
+   });
+   ```
+   The Game panel lists them; the CLI takes `play play --start <name>` and `play restart` keeps it.
+   A start combines with autoplay (`--start black-box-carry --autoplay win`), so a bot test begins
+   where it matters. The script owns what a start sets up, because only it knows its state, as it
+   owns its bots; the editor chooses the start and passes it in. The play log records `start` with
+   its name.
+3. **Play from here:** the start receives the editor's 3D cursor and camera (`start.cursor`,
+   `start.camera`, in the game's space), so a start can put the player where the person is looking.
+
 ## How a level is cooked (settled by experiment)
 
 A level other than the open document cannot be read in place. Measured 2026-10-09 from
@@ -120,5 +146,6 @@ preloading the game needs (`mission.blend`'s frame is several megabytes).
 3. `play.load` (replace), `play.level`, `onLevel`, in the editor's Play.
 4. Preload.
 5. Export: every reachable level cooked and bundled; the web player loads by name.
-6. Heck Plungers: the intro becomes `play.load('film-intro')` then `play.load('mission')`, and the
+6. Named starts and play-from-here (section 6); Heck Plungers declares its own.
+7. Heck Plungers: the intro becomes `play.load('film-intro')` then `play.load('mission')`, and the
    boot video goes.
