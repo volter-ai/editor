@@ -50,7 +50,6 @@ import { BlenderRuntimeInstances } from './blender-runtime-instances';
 import { BlenderTransparentInstances } from './blender-transparent-instances';
 import { BlenderMaterialRanges } from './blender-material-ranges';
 import { BlenderMotionGeometry } from './blender-motion-geometry';
-import { reversedDepthOf } from './reversed-depth';
 
 /** A saved `View3DShading.type` as the stage's draw mode: Material Preview is `preview`. */
 const SAVED_SHADING = {
@@ -1602,8 +1601,6 @@ export class BlenderRuntimeView {
     const frustum = camera
       ? new THREE.Frustum().setFromProjectionMatrix(
           new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
-          THREE.WebGLCoordinateSystem,
-          reversedDepthOf(camera),
         )
       : null;
     const receivers = frustum

@@ -92,7 +92,6 @@ import { activeKeymapNavigation, subscribeEditorKeymap } from '@volter/sdk/kit/k
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';
 import { ensureThreeIntegration } from './three-integration';
-import { rendererReversedDepth } from '../render/reversed-depth';
 
 /** A bounds box or LineSegments wireframe tagged with its source entity object. */
 /** A selected mesh's wireframe (the view's `selection.wire` overlay, Unity's Selection Wire):
@@ -3577,7 +3576,7 @@ export class EditorViewport {
       distance = this.freeCamera.position.distanceTo(_clipSphere.center);
       radius = _clipSphere.radius;
     }
-    const { near, far } = fitClipPlanes(distance, radius, this._renderer ? rendererReversedDepth(this._renderer) : false);
+    const { near, far } = fitClipPlanes(distance, radius);
     if (near === this.camera.near && far === this.camera.far) return;
     this.camera.near = near;
     this.camera.far = far;

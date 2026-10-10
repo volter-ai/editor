@@ -3,7 +3,6 @@
  * Blender data and the visible canvas are never changed. This is finite
  * directional quadrature, not indirect light transport. */
 import * as THREE from 'three';
-import { reversedDepthOf } from './reversed-depth';
 
 /** SKY-LIGHT OCCLUSION IS OFF IN EVERY VIEW, and compiled out of every material. Its
  *  sixteen 512-square tiles each span the whole scene, so a 360 m level gets
@@ -45,8 +44,6 @@ export class BlenderWorldVisibility {
   blenderWorldMatrices:{value:Array.from({length:SAMPLE_COUNT},()=>new THREE.Matrix4())},
   blenderWorldToNative:{value:new THREE.Matrix3()},
   blenderWorldRayOffset:{value:1e-5},
-  /** The atlas was drawn with reversed depth (near at 1, far at 0, clip z already in [0, 1]). */
-  blenderWorldReversed:{value:false},
  };
  private target:THREE.WebGLRenderTarget|null=null;
  private dynamicTarget:THREE.WebGLRenderTarget|null=null;
@@ -184,8 +181,6 @@ export class BlenderWorldVisibility {
      renderer.setRenderTarget(target);renderer.render(scene,this.camera);
     }
    }
-   // (three marks the camera reversed when a reversed-depth renderer first draws through it)
-   this.uniforms.blenderWorldReversed.value=reversedDepthOf(this.camera);
    if(this.staticDirty){this.passes+=SAMPLE_COUNT;this.staticPasses+=SAMPLE_COUNT;}
    if(this.dynamicTarget && (this.dynamicDirty||this.staticDirty)){this.passes+=SAMPLE_COUNT;this.dynamicPasses+=SAMPLE_COUNT;}
    this.dirty=false;this.staticDirty=false;this.dynamicDirty=false;
@@ -233,28 +228,24 @@ uniform vec3 blenderWorldDirections[16];
 uniform mat4 blenderWorldMatrices[16];
 uniform mat3 blenderWorldToNative;
 uniform float blenderWorldRayOffset;
-uniform bool blenderWorldReversed;
 float blenderWorldVisible(int i, vec3 position, vec3 worldDx, vec3 worldDy) {
  vec4 clip=blenderWorldMatrices[i]*vec4(position,1.);
- // Reversed depth leaves clip z in [0, 1] (near at 1); the ordinary mapping halves it from [-1, 1].
- vec3 zScale=vec3(.5,.5,blenderWorldReversed?1.:.5), zShift=vec3(.5,.5,blenderWorldReversed?0.:.5);
- vec3 point=clip.xyz/clip.w*zScale+zShift;
+ vec3 point=clip.xyz/clip.w*.5+.5;
  if(any(lessThan(point,vec3(0.))) || any(greaterThan(point,vec3(1.))))return 1.;
  vec2 tile=vec2(float(i%4),float(i/4));
  vec2 samplePoint=clamp((floor(point.xy*512.)+.5)/512.,vec2(.5/512.),vec2(1.-.5/512.));
  vec2 uv=(tile+samplePoint)/4.;
  float depth=texture2D(blenderWorldDepth,uv).x;
- // the nearer occluder of the two atlases: the smaller depth, or reversed the larger
- if(blenderWorldHasDynamicDepth){float other=texture2D(blenderWorldDynamicDepth,uv).x;depth=blenderWorldReversed?max(depth,other):min(depth,other);}
+ if(blenderWorldHasDynamicDepth)depth=min(depth,texture2D(blenderWorldDynamicDepth,uv).x);
  // Compare the receiver plane AT THE DEPTH TEXEL, not at its nearby fragment.
  // A fixed depth bias falsely shadows an unoccluded tilted plane; increasing
  // that bias leaks through thin walls. Derivatives retain its actual slope.
- vec3 dx=(blenderWorldMatrices[i]*vec4(worldDx,0.)).xyz*zScale;
- vec3 dy=(blenderWorldMatrices[i]*vec4(worldDy,0.)).xyz*zScale;
+ vec3 dx=(blenderWorldMatrices[i]*vec4(worldDx,0.)).xyz*.5;
+ vec3 dy=(blenderWorldMatrices[i]*vec4(worldDy,0.)).xyz*.5;
  float determinant=dx.x*dy.y-dx.y*dy.x;
  vec2 gradient=abs(determinant)>1e-12 ? vec2(dx.z*dy.y-dy.z*dx.y,dy.z*dx.x-dx.z*dy.x)/determinant : vec2(0.);
  float receiverDepth=point.z+dot(gradient,samplePoint-point.xy);
- return (blenderWorldReversed ? receiverDepth>=depth-1e-6 : receiverDepth<=depth+1e-6) ? 1. : 0.;
+ return receiverDepth<=depth+1e-6 ? 1. : 0.;
 }
 vec3 blenderWorldIrradiance(vec3 normal, vec3 fallbackIrradiance) {
  if(!blenderWorldVisibilityEnabled)return fallbackIrradiance;

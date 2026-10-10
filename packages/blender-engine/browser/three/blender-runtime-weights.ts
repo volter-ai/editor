@@ -25,7 +25,6 @@
  */
 import * as THREE from 'three';
 import { z } from 'zod';
-import { signedPolygonOffset } from './reversed-depth';
 
 /** What `session.py`'s `_weights` answers. `weightsBase64` / `alertBase64` are
  *  absent on a REFERENCE (`unchanged`), which is the same contract the meshes
@@ -278,8 +277,6 @@ export class WeightOverlay {
       polygonOffsetUnits: -1,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    // (toward the eye, as the ordinary mapping says it; signed per camera for reversed depth)
-    signedPolygonOffset(mesh, -1, -1);
     mesh.name = `${weights.object}:weights`;
     mesh.frustumCulled = false;
     mesh.matrixAutoUpdate = false;

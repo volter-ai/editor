@@ -46,7 +46,6 @@ import {
   type StudioPreset,
   type ViewportPresentation,
 } from '@volter/sdk/kit/viewport-presentation';
-import { signedPolygonOffset } from '../../render/reversed-depth';
 
 /**
  * Front-right three-quarter view for project-owned R3F components. Their
@@ -569,12 +568,10 @@ export class StagePresentationRig {
   private readonly floorBounds = new THREE.Box3();
   /** What the floor stands under, kept so a view that shows the floor later can place it. */
   private floorContent: THREE.Object3D | null = null;
-  private readonly floor = (() => {
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(FLOOR_EXTENT, FLOOR_EXTENT).rotateX(-Math.PI / 2), fadingFloorMaterial());
-    // (just behind what lies on its plane, signed per camera for reversed depth)
-    signedPolygonOffset(floor, 1, 1);
-    return floor;
-  })();
+  private readonly floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(FLOOR_EXTENT, FLOOR_EXTENT).rotateX(-Math.PI / 2),
+    fadingFloorMaterial(),
+  );
   /** The preview sky, built from its three colours: the background drawn behind the scene and
    *  the environment that lights it, rebuilt only when the colours change. */
   private sky: {

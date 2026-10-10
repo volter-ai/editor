@@ -6,7 +6,6 @@ import {presenterChanged} from './blender-presenter-change';
 import {graphDrawAttributes} from './blender-graph-material';
 import {materialDrawHooksSupported} from './blender-physical-material';
 import {instanceMatrixSupported, instanceObjectShown, instanceObjectHooksSupported} from './blender-runtime-instances';
-import { reversedDepthOf } from './reversed-depth';
 
 const CAPACITY = ORDERED_BATCH_CAPACITY;
 type Entry = {mesh: THREE.Mesh; material: THREE.Material | null; key: string | null; batchKey: string | null; groupOrder: number; z: number; centre: THREE.Vector3};
@@ -39,8 +38,6 @@ export class BlenderTransparentInstances {
   private readonly matrix = new THREE.Matrix4();
   private readonly projection = new THREE.Matrix4();
   private readonly frustum = new THREE.Frustum();
-  /** Whether the camera's projection is reversed: its clip z falls with distance, not rises. */
-  private reversed = false;
   private readonly centre = new THREE.Vector3();
   private readonly depth = new THREE.Vector4();
   private batches = 0;
@@ -66,7 +63,6 @@ export class BlenderTransparentInstances {
     if (!this.objects.length) return;
     camera.updateMatrixWorld();
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    this.reversed = reversedDepthOf(camera);
     let scene: THREE.Object3D = this.root;
     while (scene.parent) scene = scene.parent;
     const targetScene = scene instanceof THREE.Scene ? scene : null;
@@ -107,7 +103,7 @@ export class BlenderTransparentInstances {
     }
     this.batches = this.instances = 0;
     this.excluded = {};
-    this.frustum.setFromProjectionMatrix(this.projection, THREE.WebGLCoordinateSystem, this.reversed);
+    this.frustum.setFromProjectionMatrix(this.projection);
     this.inverse.copy(this.root.matrixWorld).invert();
     const entries: Entry[] = [];
     const eligibility = new Map<string, boolean>();
@@ -129,9 +125,7 @@ export class BlenderTransparentInstances {
       this.centre.applyMatrix4(mesh.matrixWorld);
       const centre = this.centre.clone();
       // WebGLRenderer sorts homogeneous clip z, before the perspective divide.
-      // (reversed, clip z falls with distance: negated, the back-to-front sort below holds for both)
-      const projected = this.depth.set(centre.x, centre.y, centre.z, 1).applyMatrix4(this.projection).z;
-      const z = this.reversed ? -projected : projected;
+      const z = this.depth.set(centre.x, centre.y, centre.z, 1).applyMatrix4(this.projection).z;
       let material: THREE.Material | null = null;
       let key: string | null = null;
       const candidate = materials.length === 1 ? materials[0]! : null;

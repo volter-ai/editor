@@ -148,21 +148,6 @@ export class Object3DDocumentSession {
     return this.state.mode === 'rendered' || this.state.mode === 'preview'
       ? this.displayTransform : null;
   }
-  /**
-   * THE PLAIN RESOLVE, for a mode with no display transform (Solid, Wireframe) once depth is reversed:
-   * the scene is drawn into the float-depth target like the others, then put on the screen through the
-   * capture's output pass (the renderer's tone mapping and output colour space, as a direct draw had).
-   * The canvas's own depth buffer is fixed point, where reversed depth gains nothing.
-   */
-  private readonly screenResolve: DocumentDisplayTransform = {
-    render: (renderer, input, output, straightAlpha) => {
-      const pass = viewportCaptureOutputPass(straightAlpha);
-      const was = pass.renderToScreen;
-      pass.renderToScreen = output === null;
-      try { pass.render(renderer, output as THREE.WebGLRenderTarget, input as THREE.WebGLRenderTarget, 0, false); }
-      finally { pass.renderToScreen = was; }
-    },
-  };
   /** One in-flight `import('postprocessing')` at a time — {@link ensureComposer}
    *  is called from every frame. */
   private composerLoading = false;
@@ -1011,9 +996,6 @@ export class Object3DDocumentSession {
       bottom * view.near,
       view.near,
       view.far,
-      THREE.WebGLCoordinateSystem,
-      // (built by hand, so the reversed depth three keeps on the camera is passed on)
-      (camera as THREE.PerspectiveCamera & { reversedDepth?: boolean }).reversedDepth === true,
     );
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     camera.updateMatrixWorld(true);
@@ -1445,15 +1427,12 @@ export class Object3DDocumentSession {
   renderViewport(deltaSeconds = 0, interactive = false): void {
     this.advanceLook(deltaSeconds);
     this.ensureComposer();
-    const reversed = rendererReversedDepth(this.renderer);
-    const transform = this.materialDisplayTransform() ?? (reversed ? this.screenResolve : null);
+    const transform = this.materialDisplayTransform();
     if (transform) {
       const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
       const target = this.displayTarget ??= new THREE.WebGLRenderTarget(size.x, size.y, {
         type: THREE.HalfFloatType,
         samples: 4,
-        // 32-bit float depth, what reversed depth resolves near and far with (`render/reversed-depth.ts`)
-        ...(reversed ? { depthTexture: floatDepthTexture(size.x, size.y) } : {}),
       });
       target.setSize(size.x, size.y);
       const previous = this.renderer.getRenderTarget();
@@ -1550,7 +1529,6 @@ export class Object3DDocumentSession {
     // scene viewport so exposure, tone mapping and color space affect captures.
     const sceneTarget = new THREE.WebGLRenderTarget(renderWidth, renderHeight, {
       type: THREE.HalfFloatType,
-      ...(rendererReversedDepth(this.renderer) ? { depthTexture: floatDepthTexture(renderWidth, renderHeight) } : {}),
     });
     const transform = this.materialDisplayTransform();
     const target = new THREE.WebGLRenderTarget(transform ? outputWidth : renderWidth, transform ? outputHeight : renderHeight);
@@ -1977,7 +1955,6 @@ export {
   registerObject3DDocumentSession,
   subscribeObject3DDocumentSessions,
 } from './object3d-document-session-registry';
-import { floatDepthTexture, rendererReversedDepth } from '../../render/reversed-depth';
 
 /**
  * OBJECT ORIGINS: a dot at the origin of each selected object, drawn over everything at a fixed

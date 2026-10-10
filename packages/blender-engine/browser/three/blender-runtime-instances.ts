@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { graphDrawAttributes } from './blender-graph-material';
 import { materialDrawHooksSupported } from './blender-physical-material';
-import { reversedDepthOf } from './reversed-depth';
 
 // Small spatial batches retain frustum rejection without duplicating geometry.
 const BATCH_SIZE = 64;
@@ -176,7 +175,7 @@ export class BlenderRuntimeInstances {
     camera.updateMatrixWorld();
     this.camera = camera;
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    this.frustum.setFromProjectionMatrix(this.projection, THREE.WebGLCoordinateSystem, reversedDepthOf(camera));
+    this.frustum.setFromProjectionMatrix(this.projection);
   }
 
   finishDraw(): void { this.camera = null; }

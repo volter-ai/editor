@@ -10,7 +10,6 @@
 
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import * as THREE from 'three';
-import { configureDepth, DEPTH_RENDERER_OPTIONS } from '../../render/reversed-depth';
 
 const IDLE_CAPACITY = 1;
 
@@ -47,7 +46,7 @@ function createEntry(width: number, height: number): InteractiveRendererEntry {
   canvas.height = Math.max(1, height);
   const entry: InteractiveRendererEntry = {
     canvas,
-    renderer: markHostRenderer(configureDepth(new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, ...DEPTH_RENDERER_OPTIONS }))),
+    renderer: markHostRenderer(new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })),
     leased: true,
     lost: false,
     onContextLost: null,

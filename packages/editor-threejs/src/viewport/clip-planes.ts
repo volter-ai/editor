@@ -54,13 +54,10 @@ const REACH_MARGIN = 1.25;
 export function fitClipPlanes(
   distanceToCenter: number,
   contentRadius: number,
-  /** The renderer draws with reversed float depth (`render/reversed-depth.ts`): its precision does
-   *  not hang on `far / near`, so `near` never moves, however large the world. */
-  reversedDepth = false,
 ): { near: number; far: number } {
   const d = Number.isFinite(distanceToCenter) ? Math.max(0, distanceToCenter) : 0;
   const r = Number.isFinite(contentRadius) ? Math.max(0, contentRadius) : 0;
   const far = Math.max(EDITOR_CAMERA_FAR, (d + r) * REACH_MARGIN);
-  const near = reversedDepth ? EDITOR_CAMERA_NEAR : Math.max(EDITOR_CAMERA_NEAR, far / EDITOR_CAMERA_MAX_DEPTH_RATIO);
+  const near = Math.max(EDITOR_CAMERA_NEAR, far / EDITOR_CAMERA_MAX_DEPTH_RATIO);
   return { near, far };
 }

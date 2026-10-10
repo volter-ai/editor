@@ -99,7 +99,6 @@ import {
 } from '@volter/sdk/kit/viewport-activation-timings';
 import { collectContentNodeRecords } from '@volter/editor-threejs/viewport/content-bounds';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
-import { signedPolygonOffset } from '@volter/editor-threejs/render/reversed-depth';
 import { setUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';
 import {
@@ -381,8 +380,6 @@ function createDistrictPad(district: BoardDistrictPlacement): THREE.Mesh {
     new THREE.BoxGeometry(width, PAD_THICKNESS, depth),
     new THREE.MeshStandardMaterial(PAD_MATERIAL_PARAMS),
   );
-  // (yields to what lies on the datum: signed per camera for reversed depth)
-  signedPolygonOffset(pad, PAD_MATERIAL_PARAMS.polygonOffsetFactor, PAD_MATERIAL_PARAMS.polygonOffsetUnits);
   pad.name = `volter:board-pad:${district.groupKey || UNGROUPED_LABEL}`;
   pad.position.set(
     (district.extent.minX + district.extent.maxX) / 2,

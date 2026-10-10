@@ -5,7 +5,6 @@
 import * as THREE from 'three';
 import type {WorldData, WorldExpression} from './blender-runtime-lighting';
 import {worldField} from './world-field-sampler';
-import { reversedDepthOf } from './reversed-depth';
 
 export interface WorldMedium {
   extinction: THREE.Vector3;
@@ -128,8 +127,6 @@ export class WorldVolumePass {
       surface: {value: input.texture}, depth: {value: input.depthTexture},
       inverseProjection: {value: camera.projectionMatrixInverse}, cameraWorld: {value: camera.matrixWorld},
       orthographic: {value: (camera as THREE.OrthographicCamera).isOrthographicCamera === true},
-      // (reversed depth runs clip z from 1 at the near plane to 0 at the far one, in [0, 1])
-      reversed: {value: reversedDepthOf(camera)},
       sigma: {value: this.medium.extinction}, emission: {value: this.medium.emission},
     };
     let declarations = '', lighting = '';
@@ -200,7 +197,7 @@ export class WorldVolumePass {
         #include <packing>
         #include <shadowmap_pars_fragment>
         varying vec2 vUv; uniform sampler2D surface,depth;
-        uniform mat4 inverseProjection,cameraWorld; uniform bool orthographic,reversed;
+        uniform mat4 inverseProjection,cameraWorld; uniform bool orthographic;
         uniform vec3 sigma,emission; uniform float range;
         ${declarations}
         vec3 phase(float c){${phase} return result;}
@@ -208,11 +205,11 @@ export class WorldVolumePass {
         float integral(float s,float d){float x=s*d;return x<.001 ? d*(1.-x*.5+x*x/6.) : (1.-exp(-x))/s;}
         void main(){
           float z=texture2D(depth,vUv).r; vec4 base=texture2D(surface,vUv);
-          vec4 v=inverseProjection*vec4(vUv*2.-1.,reversed?z:z*2.-1.,1.);v/=v.w;
+          vec4 v=inverseProjection*vec4(vUv*2.-1.,z*2.-1.,1.);v/=v.w;
           vec3 hit=(cameraWorld*v).xyz;
           vec3 origin=cameraWorld[3].xyz;
           if(orthographic) origin=(cameraWorld*vec4(v.xy,0.,1.)).xyz;
-          vec3 ray=normalize(hit-origin); float d=length(hit-origin); bool background=reversed?z<=0.:z>=1.;
+          vec3 ray=normalize(hit-origin); float d=length(hit-origin); bool background=z>=1.;
           vec3 tr=exp(-sigma*d);
           vec3 integrals=vec3(integral(sigma.x,d),integral(sigma.y,d),integral(sigma.z,d));
           if(background){tr=vec3(sigma.x>0.?0.:1.,sigma.y>0.?0.:1.,sigma.z>0.?0.:1.);
