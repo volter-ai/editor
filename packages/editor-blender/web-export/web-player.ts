@@ -29,7 +29,7 @@ import { createBlenderDisplayTransform, type BlenderDisplayTransform } from '@vo
 import { ownedSurfaceMaterial } from '@volter/blender-engine/browser/three/blender-physical-material';
 import { playAnimation, type PlayAnimation } from '../contributions/blender-play-skin';
 import { decodeFrameFile } from './frame-codec';
-import type { WebExportClips, WebExportManifest } from './web-export-files';
+import { WEB_EXPORT_CLIPS_FILE, WEB_EXPORT_FRAME_FILE, WEB_EXPORT_MOVIE_FILE, type WebExportClips, type WebExportManifest } from './web-export-files';
 
 /** What the page needs of a runner: `@volter/play`'s `createPlayRunner` answers it. */
 export interface WebPlayerRunner {
@@ -44,6 +44,21 @@ export interface WebPlayerStage {
   readonly animation: PlayAnimation | undefined;
   readonly ownMaterial: (material: THREE.Material) => THREE.Material | null;
   readonly report: (title: string, detail: string) => void;
+  /** Load a bundled level into `root` (`play.load`), or read one ahead (`play.preload`); absent
+   *  when the page bundles no levels. */
+  readonly loadLevel?: (level: string) => Promise<{ readonly animation?: PlayAnimation | undefined; readonly script?: { readonly default?: unknown } | null; readonly name?: string }>;
+  readonly preloadLevel?: (level: string) => Promise<void>;
+}
+
+/** The page's levels (`docs/LEVELS.md`): each cook under the page's data, and each level's own
+ *  play script when it has one. */
+export interface WebPlayerLevels {
+  /** The URL of one of a level's cooked files. */
+  url(level: string, file: string): string;
+  /** The level's own play script module, or null when it has none. */
+  script(level: string): Promise<{ readonly default?: unknown }> | null;
+  /** The level's script's name, for the log. */
+  scriptName?(level: string): string | undefined;
 }
 
 export interface WebPlayerOptions {
@@ -62,6 +77,8 @@ export interface WebPlayerOptions {
   /** Mount the project's `dom` roots into the HUD layer before the script starts, so the script
    *  and its UI share one module graph (a store both import) from the first update. */
   readonly mountHud?: (hud: HTMLElement) => void | Promise<void>;
+  /** The levels the page bundles; absent, `play.load` is refused. */
+  readonly levels?: WebPlayerLevels;
 }
 
 export interface WebPlayer {
@@ -220,12 +237,57 @@ export async function bootWebPlayer(options: WebPlayerOptions): Promise<WebPlaye
     animation = undefined;
   }
 
+  // THE PAGE'S LEVELS (`play.load`): a cook read once (and ahead, by `play.preload`), then built into
+  // the same view the game runs in, its clips and movie becoming the run's animation
+  const cooks = new Map<string, Promise<{ frame: { session: string }; clips: WebExportClips; movie: BlenderSceneMovie | null }>>();
+  const readCook = (level: string) => {
+    const levels = options.levels;
+    if (!levels) return Promise.reject(new Error('This page bundles no levels.'));
+    let cook = cooks.get(level);
+    if (!cook) {
+      cook = Promise.all([
+        fetchBytes(levels.url(level, WEB_EXPORT_FRAME_FILE), `level ${level}`),
+        fetchBytes(levels.url(level, WEB_EXPORT_CLIPS_FILE), `level ${level}'s animation`).then((bytes) => JSON.parse(new TextDecoder().decode(bytes)) as WebExportClips),
+        fetch(levels.url(level, WEB_EXPORT_MOVIE_FILE)).then((r) => (r.ok ? r.json() as Promise<BlenderSceneMovie | null> : null)).catch(() => null),
+      ]).then(([bytes, levelClips, levelMovie]) => ({ frame: decodeFrameFile(bytes) as { session: string }, clips: levelClips, movie: levelMovie }));
+      cooks.set(level, cook);
+      cook.catch(() => { if (cooks.get(level) === cook) cooks.delete(level); });
+    }
+    return cook;
+  };
+  const preloadLevel = async (level: string): Promise<void> => { await readCook(level); };
+  const loadLevel = async (level: string) => {
+    const cook = await readCook(level);
+    cooks.delete(level);
+    cook.frame.session = `level:${level}:${Date.now()}`;
+    animation?.dispose();
+    animation = undefined;
+    view.applyFrame(cook.frame);
+    await view.prepareRendered(camera, 'render');
+    let next: PlayAnimation | undefined;
+    try {
+      next = playAnimation(view, (armature, action) => {
+        const entry = cook.clips.armatures[armature]?.[action];
+        if (typeof entry === 'number') return Promise.resolve(cook.clips.clips[entry] ?? null);
+        return Promise.reject(new Error(typeof entry === 'string' ? entry : `${armature} / ${action} was not exported with level ${level}`));
+      }, new Map(), { warn: (said) => console.warn(said), readMovie: async () => cook.movie });
+      await next.prepare();
+    } catch (error) {
+      console.error(`Level ${level}'s animation could not be set up, so it plays without it: ${error instanceof Error ? error.message : String(error)}`);
+      next = undefined;
+    }
+    animation = next;
+    const script = options.levels!.script(level);
+    return { animation: next, script: script ? await script : null, name: options.levels!.scriptName?.(level) ?? level };
+  };
+
   const runner = options.runner({
     root: view.root,
     camera: () => camera,
     animation,
     ownMaterial: (material) => ownedSurfaceMaterial(material),
     report: fail,
+    ...(options.levels ? { loadLevel, preloadLevel } : {}),
   });
   say('Starting…');
   if (options.mountHud) await options.mountHud(hud);

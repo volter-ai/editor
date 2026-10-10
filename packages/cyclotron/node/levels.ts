@@ -44,7 +44,7 @@ function blends(project: string): string[] {
   return out.sort();
 }
 
-const levelOf = (blend: string): string => (blend.split('/').pop() ?? blend).replace(/\.blend$/i, '');
+export const levelOf = (blend: string): string => (blend.split('/').pop() ?? blend).replace(/\.blend$/i, '');
 const sha256 = (path: string): string => createHash('sha256').update(readFileSync(path)).digest('hex');
 
 export function listLevels(project: string): Level[] {

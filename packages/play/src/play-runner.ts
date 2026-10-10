@@ -58,6 +58,12 @@ export interface PlayRunnerOptions {
   readonly report?: (title: string, detail: string) => void;
   /** The newest entries kept (5000). */
   readonly logCapacity?: number;
+  /** LOAD A LEVEL into `root` (`play.load`, docs/LEVELS.md): the page builds the level's cook there
+   *  and answers its animation, and its own play script when it has one, which then replaces the
+   *  running script. Absent, the page bundles no levels. */
+  readonly loadLevel?: (level: string) => Promise<{ readonly animation?: DocumentPlayAnimation | undefined; readonly script?: { readonly default?: unknown } | null; readonly name?: string }>;
+  /** Read a level's cook ahead of its load (`play.preload`). */
+  readonly preloadLevel?: (level: string) => Promise<void>;
 }
 
 export interface PlayRunner {
@@ -112,9 +118,11 @@ export function createPlayRunner(options: PlayRunnerOptions): PlayRunner {
   const heldKeys = new Set<string>();
   const tracks = new Map<string, string>();
   let name = 'play script';
+  /** The level's animation: the page's, until a level's load replaces it (`play.load`). */
+  let animation = options.animation;
   /** Cutscenes and sequences from the exported movie, on the game's clock (`play-movie.ts`). */
   const movies = moviePlayer({
-    movie: () => options.animation?.movie ?? null,
+    movie: () => animation?.movie ?? null,
     camera: options.camera,
     root,
     append,
@@ -144,7 +152,8 @@ export function createPlayRunner(options: PlayRunnerOptions): PlayRunner {
     finally { if (life) { life.value = false; life.bot = null; } }
   };
 
-  return {
+  let loadingLevel: Promise<void> | null = null;
+  const runner: PlayRunner = {
     async start(script, label) {
       if (disposed) throw new Error('This play runner was disposed.');
       if (game) stop();
@@ -156,7 +165,28 @@ export function createPlayRunner(options: PlayRunnerOptions): PlayRunner {
         if (typeof script.default !== 'function')
           throw new Error(`${name} has no default export to call: a play script default-exports (play) => ({ update(dt) }).`);
         const context = modelPlayContext({
-          root, camera: options.camera, keys, materials, tracks, movies, animation: options.animation, append,
+          root, camera: options.camera, keys, materials, tracks, movies, append,
+          get animation() { return animation; },
+          load: (level) => {
+            if (!options.loadLevel) return Promise.reject(new Error('This page bundles no levels (play.load).'));
+            if (loadingLevel) return Promise.reject(new Error(`play.load('${level}') was called while another level is loading.`));
+            const started = performance.now();
+            append('play', 'level-loading', { level });
+            movies.end();
+            loadingLevel = options.loadLevel(level).then(async (loaded) => {
+              animation = loaded.animation;
+              tracks.clear();
+              append('play', 'level', { level, ms: Math.round(performance.now() - started), script: loaded.name ?? null });
+              // A LEVEL WITH ITS OWN SCRIPT runs it in place of this one
+              if (loaded.script) await runner.start(loaded.script, loaded.name ?? level);
+            }).finally(() => { loadingLevel = null; });
+            return loadingLevel;
+          },
+          preload: (level) => {
+            if (!options.preloadLevel) return Promise.reject(new Error('This page bundles no levels (play.preload).'));
+            const started = performance.now();
+            return options.preloadLevel(level).then(() => append('play', 'level-preloaded', { level, ms: Math.round(performance.now() - started) }));
+          },
         }, alive);
         const answered: unknown = await (script.default as (play: ModelPlayContext) => unknown)(context);
         if (!isModelPlayGame(answered))
@@ -176,7 +206,7 @@ export function createPlayRunner(options: PlayRunnerOptions): PlayRunner {
       if (running) {
         try {
           for (const dt of splitUpdateSeconds(Math.max(0, seconds))) {
-            options.animation?.update(dt);
+            animation?.update(dt);
             movies.advance(dt);
             time += dt;
             tick += 1;
@@ -209,4 +239,5 @@ export function createPlayRunner(options: PlayRunnerOptions): PlayRunner {
       append('play', 'play-stop', { reason: 'stop' });
     },
   };
+  return runner;
 }
