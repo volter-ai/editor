@@ -24,18 +24,26 @@
  * the game starts (`prepare`), and a bake that could not be read is tried again, so a slow or
  * failed read at Play's start does not leave a character frozen for the run.
  *
+ * THE SCENE'S MOVIE plays on the same copy (`movie`, `blender-play-movie.ts`): while a game's
+ * cutscene holds a scene frame (`movie.seek`), every armature shows the file's own stack at that
+ * frame (its NLA strips and assigned action, as Blender's playback shows them, whatever the game
+ * set), and every animated object and camera stands where the movie has it. `seek(null)` hands
+ * the armatures back to what the game set, which kept its own clock meanwhile; objects keep the
+ * movie's last pose, so a door the cutscene opened stays open.
+ *
  * THE GAME'S CLOCK DRIVES IT: the runner advances it by each update's `dt`
  * (`@volter/play`'s `play-script.ts`), so pause, step, speed and Restart hold for
  * animation exactly as they do for the script.
  */
-import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
+import type { BlenderActionClip, BlenderSceneMovie } from '@volter/blender-engine/browser/rna';
 import type { BlenderArmature } from '@volter/blender-engine/browser/three/blender-runtime-armature';
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import type * as THREE from 'three';
-import { ArmaturePose, nlaLayers, poseClip, type ConstraintOverride, type PoseClip, type PoseLayer } from './blender-pose';
-import { editorHost } from '@volter/sdk/host';
-import { remedy } from './blender-runtime-skin';
+import { actionLayer, nlaLayers, type PoseLayer } from './blender-pose';
+import { MixerPose, mixerClip, type ConstraintOverride, type MixerClip } from './blender-mixer-pose';
+import { playMovie, type MovieMarker, type MovieScope, type PlayMovie } from './blender-play-movie';
+import { remedy } from './blender-remedy';
 
 export interface PlayActionOptions {
   /** Seconds to crossfade from what played before (default 0.2). */
@@ -64,8 +72,30 @@ export interface PlayConstraintOptions {
 
 type Answer = { ok: true; armature: string } | { ok: false; why: string };
 
+/**
+ * THE SCENE'S MOVIE, for a game's cutscene (`ModelPlayContext.cutscene`): read from Blender once,
+ * in the loading phase, and played at the scene frames the cutscene asks for.
+ */
+export interface PlayAnimationMovie {
+  /** The scene's range, rate and camera; null until read, or when it could not be. */
+  scene(): { readonly start: number; readonly end: number; readonly fps: number; readonly camera: string | null } | null;
+  /** The Timeline's markers by frame, each with the camera it is bound to. */
+  markers(): readonly MovieMarker[];
+  /** Hold the scene at `frame` (every armature on the file's stack, every animated object and
+   *  camera as the movie has it), posed now; null hands the armatures back to the game. */
+  seek(frame: number | null, scope?: { readonly collection?: string; readonly at?: unknown; readonly anchor?: string }): void;
+  hasCollection(name: string): boolean;
+  /** The camera Blender's playback looks through at `frame` (marker cuts, else the scene's). */
+  cameraAt(frame: number): string | null;
+  /** Look through a Blender camera as it stands now: its pose and projection, into `camera`. */
+  look(camera: THREE.Camera, name: string): boolean;
+  readonly warnings: readonly string[];
+}
+
 /** The game's door to its characters' animation (`ModelPlayContext.setAction`, `setTrack`, `setConstraint`). */
 export interface PlayAnimation {
+  /** The scene's own animation, for a cutscene. */
+  readonly movie: PlayAnimationMovie;
   /** The actions in the file, which an object's armature may play. */
   clips(object: THREE.Object3D): readonly string[];
   play(object: THREE.Object3D, action: string, options?: PlayActionOptions): Answer;
@@ -128,10 +158,10 @@ interface Track { action: Playing | null; previous: Playing | null; readonly inf
 
 interface Armature {
   readonly rig: ArmatureRig;
-  readonly pose: ArmaturePose;
+  readonly pose: MixerPose;
   readonly facts: BlenderArmature;
   /** Baked clips by action: the clip, undefined while baking, null when it plays nothing. */
-  readonly clips: Map<string, PoseClip | null | undefined>;
+  readonly clips: Map<string, MixerClip | null | undefined>;
   readonly failed: Map<string, string>;
   /** The active action and the ones fading out under it, oldest first. */
   line: Playing[];
@@ -145,7 +175,20 @@ interface Armature {
 /** Reads that outlive one Play: a document's next Play reuses them (see `shared` below). */
 export type PlayClipCache = Map<string, Promise<BlenderActionClip | null>>;
 
-export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>, cache: PlayClipCache = new Map()): PlayAnimation {
+/** Where the animation says what a person should hear at once (beside `warnings`): the editor's
+ *  console in the editor, the page's console in a web export. Absent, only `warnings` keeps it. */
+export interface PlayAnimationOptions {
+  readonly warn?: (message: string) => void;
+  /** The scene's movie (a cutscene's or a sequence's): Blender's `scene-movie` door in the editor,
+   *  the dump's `movie.json` in a web export. Absent, a document lends no movie. */
+  readonly readMovie?: () => Promise<BlenderSceneMovie | null>;
+}
+
+/**
+ * The game's copy animated. It imports no editor host and no Blender (only `blender-pose.ts`, `blender-mixer-pose.ts`, `blender-play-movie.ts` and
+ * three), so a web export plays it too, with `bake` answering clips baked when it was exported.
+ */
+export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>, cache: PlayClipCache = new Map(), options: PlayAnimationOptions = {}): PlayAnimation {
   const warnings: string[] = [];
   const facts = view.animationFacts();
   const actions = Object.keys(facts.actions);
@@ -155,6 +198,29 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const armatures = new Map<string, Armature>();
   let time = 0;
   let disposed = false;
+  /** The scene frame a cutscene holds, or null while the game animates. */
+  let movieFrame: number | null = null;
+  /** The armatures the running sequence drives (null: every one). */
+  let movieOnly: ReadonlySet<string> | null = null;
+  let movie: PlayMovie | null = null;
+  const movieWarnings: string[] = [];
+  /** THE MOVIE'S READ, once, started by `prepare` (or by the first cutscene that wants it). */
+  let movieRead: Promise<void> | null = null;
+  const loadMovie = (): Promise<void> => movieRead ??= (async () => {
+    const readMovie = options.readMovie;
+    if (!readMovie) return;
+    try {
+      const data = await readMovie();
+      if (disposed) return;
+      if (!data) { movieWarnings.push("The scene's movie could not be read: Blender's session is not started."); return; }
+      movie = playMovie(view, data);
+      movieWarnings.push(...movie.warnings);
+      for (const said of movie.warnings) options.warn?.(said);
+    } catch (error) {
+      movieWarnings.push(`The scene's movie could not be read: ${error instanceof Error ? error.message : String(error)}`);
+      options.warn?.(movieWarnings.at(-1)!);
+    }
+  })();
   const lastSources = new Map<Armature, (string | null)[]>();
 
   const fail = (armature: Armature, action: string, why: string): void => {
@@ -197,7 +263,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     shared.set(key, read);
     return read;
   };
-  const clipOf = (armature: Armature, action: string): PoseClip | null | undefined => {
+  const clipOf = (armature: Armature, action: string): MixerClip | null | undefined => {
     if (armature.clips.has(action)) return armature.clips.get(action);
     void bakeClip(armature, action);
     return undefined;
@@ -212,7 +278,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       // A clip that cannot be posed is that clip's failure, named like the others; it never
       // rejects the bake, so the loading phase that awaits it always settles.
       try {
-        const clip = baked ? poseClip(baked) : null;
+        const clip = baked ? mixerClip(baked) : null;
         for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
         if (clip) armature.clips.set(action, clip);
         else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
@@ -250,7 +316,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   for (const rig of view.skeletons.rigs()) {
     const entry = facts.armatures[rig.armature];
     if (!entry) continue;
-    const pose = new ArmaturePose(rig);
+    const pose = new MixerPose(rig);
     pose.facts(entry);
     for (const thing of pose.unsupported()) warnings.push(`${rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
     const armature: Armature = { rig, pose, facts: entry, clips: new Map(), failed: new Map(), line: [], tracks: new Map(), constraints: new Map(), posed: [] };
@@ -322,6 +388,32 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     return waiting ? null : layers;
   };
 
+  /** THE FILE'S STACK AT A SCENE FRAME (a cutscene): its NLA strips, then the action the file
+   *  assigns it over them, as Blender's playback shows it; null while a clip is being baked. */
+  const movieLayersOf = (armature: Armature, frame: number): PoseLayer[] | null => {
+    const animation = armature.facts.animation;
+    const stack = nlaLayers(animation, frame, (action) => clipOf(armature, action));
+    const layers = [...stack.layers];
+    const sources: (string | null)[] = layers.map(() => null);
+    let waiting = stack.waiting;
+    if (armature.facts.action) {
+      const clip = clipOf(armature, armature.facts.action);
+      if (clip === undefined) waiting = true;
+      const layer = clip ? actionLayer(animation, clip, frame, stack.evaluated) : null;
+      if (layer) { layers.push(layer); sources.push(null); }
+    }
+    lastSources.set(armature, sources);
+    return waiting ? null : layers;
+  };
+  const poseArmature = (armature: Armature, layers: PoseLayer[]): void => {
+    const sources = lastSources.get(armature) ?? [];
+    armature.posed = layers.map((layer, i) => ({ track: sources[i] ?? null, action: layer.clip.action, frame: layer.frame, influence: layer.influence, blend: layer.blend }));
+    armature.pose.apply(layers, {
+      object: (name) => view.objectForBlenderName(name),
+      override: (bone, name) => armature.constraints.get(`${bone}\u0000${name}`),
+    });
+  };
+
   /** The armature that animates `object`: its own, the one its skin is bound to, or the nearest
    *  armature among its ancestors and descendants (a character's root holds its armature). */
   const own = (candidate: THREE.Object3D): Armature | null => {
@@ -351,12 +443,39 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     warned.add(action);
     const said = `The game plays "${action}", which nothing in the file uses and has no fake user, so Blender drops it the next time the file saves. Give it a fake user (action.use_fake_user = True) or assign it.`;
     warnings.push(said);
-    editorHost().console.warn(said, 'blender-animation');
+    options.warn?.(said);
   };
   const none = (object: THREE.Object3D): Answer => ({ ok: false, why: `${object.name || 'this object'} has no armature` });
 
   return {
     warnings,
+    movie: {
+      scene: () => movie?.scene ?? null,
+      markers: () => movie?.markers ?? [],
+      seek(frame, scope) {
+        if (disposed) return;
+        movieFrame = frame;
+        if (frame === null) { movieOnly = null; return; }
+        if (!movie) void loadMovie();
+        const only = scope?.collection ? movie?.collection(scope.collection) ?? new Set<string>() : null;
+        movieOnly = only;
+        const at = scope?.at as THREE.Object3D | undefined;
+        const movieScope: MovieScope = {
+          ...(only ? { only } : {}),
+          ...(at && typeof at === 'object' && 'matrixWorld' in at && scope?.anchor ? { place: { at, anchor: scope.anchor } } : {}),
+        };
+        movie?.pose(frame, movieScope);
+        for (const armature of armatures.values()) {
+          if (only && !only.has(armature.rig.armature)) continue;
+          const layers = movieLayersOf(armature, frame);
+          if (layers) poseArmature(armature, layers);
+        }
+      },
+      hasCollection: (name) => movie?.collection(name) != null,
+      cameraAt: (frame) => movie?.cameraAt(frame) ?? null,
+      look: (camera, name) => movie?.look(camera, name) ?? false,
+      warnings: movieWarnings,
+    },
     clips: (object) => (armatureOf(object) ? actions : []),
     play(object, action, options = {}) {
       const armature = armatureOf(object);
@@ -426,6 +545,8 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       return ok(armature);
     },
     async prepare() {
+      // The movie is read beside the clips, so a cutscene the game opens on is ready at once.
+      const reading = loadMovie();
       const wanted = startingClips();
       for (let round = 0; round < READ_ATTEMPTS && !disposed; round += 1) {
         const open = wanted.filter(({ armature, action }) => armature.clips.get(action) === undefined);
@@ -435,6 +556,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       const failed = wanted
         .filter(({ armature, action }) => armature.clips.get(action) == null && armature.failed.has(action) && !/animates none/.test(armature.failed.get(action) ?? ''))
         .map(({ armature, action }) => `${armature.rig.armature} / ${action}: ${armature.failed.get(action)}`);
+      await reading;
       return { failed };
     },
     prefetch() {
@@ -478,30 +600,22 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
           if (track.previous && track.action && track.action.weight.weight >= 1) track.previous = null;
           if (track.own && track.influence.weight === 0 && track.influence.target === 0) armature.tracks.delete(name);
         }
+        // A CUTSCENE HOLDS THE SCENE: its `seek` poses the armature at the movie's frame.
+        if (movieFrame !== null && (!movieOnly || movieOnly.has(armature.rig.armature))) continue;
         const layers = layersOf(armature);
         if (!layers) continue;
-        const sources = lastSources.get(armature) ?? [];
-        armature.posed = layers.map((layer, i) => ({ track: sources[i] ?? null, action: layer.clip.action, frame: layer.frame, influence: layer.influence, blend: layer.blend }));
-        armature.pose.apply(layers, {
-          object: (name) => view.objectForBlenderName(name),
-          override: (bone, name) => armature.constraints.get(`${bone}\u0000${name}`),
-        });
+        poseArmature(armature, layers);
       }
     },
     channels(name, action) {
       const clip = armatures.get(name)?.clips.get(action);
       if (!clip) return [];
-      const bones = new Map<string, Set<number>>();
-      for (const channel of clip.channels) {
-        let frames = bones.get(channel.bone);
-        if (!frames) bones.set(channel.bone, frames = new Set());
-        for (const curve of channel.curves) if (curve) for (let i = 0; i < curve.keys.length; i += 6) frames.add(Math.round(curve.keys[i]! * 1000) / 1000);
-      }
-      return [...bones].map(([bone, frames]) => ({ bone, keys: [...frames].sort((a, b) => a - b) }));
+      return [...clip.bones].map(([bone, sampled]) => ({ bone, keys: [...sampled.keys].sort((a, b) => a - b) }));
     },
     live: () => [...armatures.values()].map((armature) => ({ armature: armature.rig.armature, layers: armature.posed })),
     dispose() {
       disposed = true;
+      for (const armature of armatures.values()) armature.pose.dispose();
       armatures.clear();
     },
   };

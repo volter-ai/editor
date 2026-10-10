@@ -5224,16 +5224,19 @@ def rna_action_clip(object_name=None, bake=True, action_name=None, summary=True)
     for fcurve in curves:
         match = _BONE_PATH.match(fcurve.data_path)
         if match is None:
-            # NOT A BONE'S CHANNEL: the armature object's own transform (root motion), a custom
-            # property, a bone channel this door does not read. Named, so it is never dropped quietly.
-            others.add(fcurve.data_path)
+            # NOT A BONE'S CHANNEL: a custom property, a bone channel this door does not read.
+            # Named, so it is never dropped quietly. The armature object's OWN transform is not
+            # this door's either, but it plays: the scene's movie (`rna_scene_movie`) carries it.
+            if _OBJECT_PATH.match(fcurve.data_path) is None:
+                others.add(fcurve.data_path)
             continue
         bone, prop = match.group(1), match.group(2)
         channels.setdefault((bone, prop), {})[int(fcurve.array_index)] = fcurve
     if not channels:
         header["reason"] = ("%r animates no pose bone -- every F-Curve is on a data path this "
-                            "door does not play (object transform, shape keys, a material). The "
-                            "Timeline still draws its keys." % (action.name,))
+                            "door plays (shape keys, a material, or the object's own transform, which "
+                            "the scene's movie plays: `rna_scene_movie`). The Timeline still draws "
+                            "its keys." % (action.name,))
         return header
     tracks = []
     unplayed = []
@@ -5247,10 +5250,388 @@ def rna_action_clip(object_name=None, bake=True, action_name=None, summary=True)
         header["unsupported"] = ["curves on %s" % ", ".join(sorted(others))]
     header.update({
         "tracks": tracks,
+        "bones": _three_bones(arm_obj, channels, first, last),
         "duration": (last - first) / fps,
         "unplayedBones": unplayed,
     })
     return header
+
+
+def _three_bones(arm_obj, channels, first, last):
+    """THE ACTION AS THREE.JS PLAYS IT: per bone it keys, the bone's LOCAL transform (relative to
+    its parent bone, as a `THREE.Bone` carries it) at every integer frame from `first` to `last`.
+
+    Blender evaluates every channel (`FCurve.evaluate`: its keys, handles, interpolation, easing,
+    extrapolation and modifiers); a component the action does not key keeps the bone's own value.
+    The basis is composed by the bone's rotation mode and placed by its rest relative to its
+    parent's rest, `local = (parent.matrix_local^-1 @ bone.matrix_local) @ basis`, so a clip moves
+    a bone exactly as Blender's pose does at every frame, and three.js interpolates between them.
+
+    Each column crosses as base64 Float32: `position` three per frame, `quaternion` four (x, y, z,
+    w, as three reads them, kept on one hemisphere so a slerp never turns the long way), `scale`
+    three. A column whose every sample equals its first crosses as that one sample."""
+    frames = list(range(first, last + 1))
+    by_bone = {}
+    for (bone, prop), components in channels.items():
+        by_bone.setdefault(bone, {})[prop] = components
+    out = []
+    for name in sorted(by_bone):
+        pbone = arm_obj.pose.bones.get(name)
+        if pbone is None:
+            continue
+        rest = pbone.bone.matrix_local
+        parent = pbone.bone.parent
+        rest_relative = (parent.matrix_local.inverted() @ rest) if parent is not None else rest.copy()
+        props = by_bone[name]
+        mode = pbone.rotation_mode
+        own = {
+            "location": list(pbone.location),
+            "rotation_quaternion": list(pbone.rotation_quaternion),
+            "rotation_euler": list(pbone.rotation_euler),
+            "rotation_axis_angle": list(pbone.rotation_axis_angle),
+            "scale": list(pbone.scale),
+        }
+        position = array.array("f")
+        quaternion = array.array("f")
+        scale = array.array("f")
+        last_q = None
+        keys = set()
+        for components in props.values():
+            for fcurve in components.values():
+                for point in fcurve.keyframe_points:
+                    keys.add(round(float(point.co[0]), 3))
+        for frame in frames:
+            values = {prop: list(value) for prop, value in own.items()}
+            for prop, components in props.items():
+                for index, fcurve in components.items():
+                    if index < len(values[prop]):
+                        values[prop][index] = fcurve.evaluate(frame)
+            if mode == "QUATERNION":
+                rotation = mathutils.Quaternion(values["rotation_quaternion"]).normalized()
+            elif mode == "AXIS_ANGLE":
+                angle, x, y, z = values["rotation_axis_angle"]
+                axis = mathutils.Vector((x, y, z))
+                rotation = mathutils.Quaternion(axis.normalized() if axis.length > 0 else (0.0, 1.0, 0.0), angle)
+            else:
+                rotation = mathutils.Euler(values["rotation_euler"], mode).to_quaternion()
+            basis = mathutils.Matrix.LocRotScale(mathutils.Vector(values["location"]), rotation,
+                                                 mathutils.Vector(values["scale"]))
+            loc, rot, size = (rest_relative @ basis).decompose()
+            if last_q is not None and last_q.dot(rot) < 0:
+                rot.negate()
+            last_q = rot
+            position.extend((loc.x, loc.y, loc.z))
+            quaternion.extend((rot.x, rot.y, rot.z, rot.w))
+            scale.extend((size.x, size.y, size.z))
+
+        def column(samples, stride):
+            if len(samples) > stride and all(abs(samples[i] - samples[i % stride]) < 1e-7 for i in range(len(samples))):
+                samples = samples[:stride]
+            return {"count": len(samples) // stride, "base64": base64.b64encode(samples.tobytes()).decode("ascii")}
+
+        out.append({"bone": name, "keys": sorted(keys), "position": column(position, 3),
+                    "quaternion": column(quaternion, 4), "scale": column(scale, 3)})
+    return out
+
+
+# ------------------------------------------------------------- the scene's movie
+
+# AN OBJECT'S OWN TRANSFORM CHANNELS, as an action keys them on the object (not on a bone).
+_OBJECT_PATH = re.compile(r'^(location|rotation_quaternion|rotation_euler|rotation_axis_angle|scale)$')
+# A CAMERA'S KEYABLE PROJECTION, as an action keys it on the camera's data.
+_CAMERA_PROPS = ("lens", "sensor_width", "sensor_height", "ortho_scale", "shift_x", "shift_y",
+                 "clip_start", "clip_end")
+
+
+def _slot_handle(action, owner, prefix, slot=None):
+    """The slot an owner plays `action` through: the one it names (`slot`), else the one whose
+    identifier names the owner (`OB<name>`, `CA<name>`), else the first slot of the owner's ID
+    type, as Blender picks it on assignment. None for a legacy action (one channel set)."""
+    if slot is not None:
+        return getattr(slot, "handle", None)
+    slots = list(getattr(action, "slots", ()))
+    if not slots:
+        return None
+    kind = "OBJECT" if prefix == "OB" else "CAMERA"
+    named = next((one for one in slots if getattr(one, "identifier", "") == prefix + owner.name), None)
+    if named is not None:
+        return named.handle
+    typed = [one for one in slots if getattr(one, "target_id_type", kind) == kind]
+    return typed[0].handle if typed else None
+
+
+def _object_constraints(obj):
+    """An object's constraint stack, in order: Damped Track and Track To carry what the presenter
+    evaluates them from; every other type is named and played only in Blender."""
+    stack = []
+    for con in obj.constraints:
+        target = getattr(con, "target", None)
+        entry = {"name": con.name, "type": con.type, "enabled": bool(con.enabled),
+                 "influence": float(con.influence)}
+        if target is not None:
+            entry["target"] = target.name
+        if con.type in ("DAMPED_TRACK", "TRACK_TO"):
+            entry["trackAxis"] = con.track_axis
+        if con.type == "TRACK_TO":
+            entry["upAxis"] = con.up_axis
+            entry["useTargetZ"] = bool(con.use_target_z)
+        stack.append(entry)
+    return stack
+
+
+def _column(samples, stride):
+    """A sampled column as base64 Float32: its first sample alone when it never changes."""
+    if len(samples) > stride and all(abs(samples[i] - samples[i % stride]) < 1e-7 for i in range(len(samples))):
+        samples = samples[:stride]
+    return {"count": len(samples) // stride, "base64": base64.b64encode(samples.tobytes()).decode("ascii")}
+
+
+def _owner_action_at(adt, frame):
+    """The action an owner shows at a scene frame and the action frame it shows: the active
+    action at the scene frame, else the strip of the topmost unmuted NLA track the frame falls on
+    (its scale and repeat), else the nearest strip held. None when nothing animates it."""
+    if adt is None:
+        return None, frame
+    if adt.action is not None:
+        return adt.action, frame
+    best = None
+    for track in adt.nla_tracks:
+        if track.mute:
+            continue
+        for strip in track.strips:
+            if strip.mute or strip.action is None:
+                continue
+            if strip.frame_start <= frame <= strip.frame_end or best is None:
+                best = strip
+    if best is None:
+        return None, frame
+    length = (best.action_frame_end - best.action_frame_start) or 1.0
+    scale = abs(best.scale) or 1.0
+    at = min(max(frame, best.frame_start), best.frame_end)
+    into = ((at - best.frame_start) / scale) % length if at < best.frame_end else length
+    return best.action, best.action_frame_start + into
+
+
+def _sample_object(obj, pre, delta, first, last, unsupported):
+    """AN OBJECT'S MOVIE AS THREE.JS PLAYS IT: its local transform (`pre @ basis`, the basis with its
+    delta transform, `BKE_object_to_mat4`) at every scene frame from `first` to `last`, each channel
+    evaluated by Blender (`FCurve.evaluate`) from the action it shows there. Columns as the clip
+    door's: position, quaternion (x, y, z, w, one hemisphere), scale; and `hidden` (one per frame,
+    1 hidden) when its render visibility is keyed."""
+    adt = obj.animation_data
+    if adt is None:
+        return None
+    if len([track for track in adt.nla_tracks if not track.mute]) > 1 or (adt.action is not None and len(adt.nla_tracks)):
+        unsupported.append("its NLA layering (the active action, else the top strip, is played)")
+    position = array.array("f")
+    quaternion = array.array("f")
+    scale = array.array("f")
+    hidden = array.array("f")
+    keyed_hidden = False
+    last_q = None
+    mode = obj.rotation_mode
+    own = {"location": list(obj.location), "rotation_quaternion": list(obj.rotation_quaternion),
+           "rotation_euler": list(obj.rotation_euler), "rotation_axis_angle": list(obj.rotation_axis_angle),
+           "scale": list(obj.scale), "hide_render": [float(obj.hide_render)]}
+    curves_of = {}
+    for frame in range(first, last + 1):
+        action, at = _owner_action_at(adt, frame)
+        values = {prop: list(value) for prop, value in own.items()}
+        if action is not None:
+            curves = curves_of.get(action.name)
+            if curves is None:
+                handle = _slot_handle(action, obj, "OB", getattr(adt, "action_slot", None) if action == adt.action else None)
+                curves = curves_of[action.name] = _action_channelbag(action, handle)[0]
+            for fcurve in curves:
+                if fcurve.data_path in values and fcurve.array_index < len(values[fcurve.data_path]):
+                    values[fcurve.data_path][fcurve.array_index] = fcurve.evaluate(at)
+                    if fcurve.data_path == "hide_render":
+                        keyed_hidden = True
+        if mode == "QUATERNION":
+            rotation = mathutils.Quaternion(values["rotation_quaternion"]).normalized()
+        elif mode == "AXIS_ANGLE":
+            angle, x, y, z = values["rotation_axis_angle"]
+            axis = mathutils.Vector((x, y, z))
+            rotation = mathutils.Quaternion(axis.normalized() if axis.length > 0 else (0.0, 0.0, 1.0), angle)
+        else:
+            rotation = mathutils.Euler(values["rotation_euler"], mode).to_quaternion()
+        rotation = delta @ rotation
+        location = mathutils.Vector(values["location"]) + obj.delta_location
+        size = mathutils.Vector([a * b for a, b in zip(values["scale"], obj.delta_scale)])
+        loc, rot, sca = (pre @ mathutils.Matrix.LocRotScale(location, rotation, size)).decompose()
+        if last_q is not None and last_q.dot(rot) < 0:
+            rot.negate()
+        last_q = rot
+        position.extend((loc.x, loc.y, loc.z))
+        quaternion.extend((rot.x, rot.y, rot.z, rot.w))
+        scale.extend((sca.x, sca.y, sca.z))
+        hidden.append(1.0 if values["hide_render"][0] >= 0.5 else 0.0)
+    out = {"start": first, "end": last, "position": _column(position, 3), "quaternion": _column(quaternion, 4),
+           "scale": _column(scale, 3)}
+    if keyed_hidden:
+        out["hidden"] = _column(hidden, 1)
+    return out
+
+
+def _sample_camera(data, first, last):
+    """A CAMERA'S PROJECTION AS THE MOVIE HAS IT: each of `_CAMERA_PROPS` at every scene frame, by
+    Blender's evaluation of the action its data shows there."""
+    adt = data.animation_data
+    columns = {prop: array.array("f") for prop in _CAMERA_PROPS}
+    curves_of = {}
+    for frame in range(first, last + 1):
+        action, at = _owner_action_at(adt, frame)
+        values = {prop: float(getattr(data, prop)) for prop in _CAMERA_PROPS}
+        if action is not None:
+            curves = curves_of.get(action.name)
+            if curves is None:
+                handle = _slot_handle(action, data, "CA", getattr(adt, "action_slot", None) if action == adt.action else None)
+                curves = curves_of[action.name] = _action_channelbag(action, handle)[0]
+            for fcurve in curves:
+                if fcurve.data_path in values:
+                    values[fcurve.data_path] = fcurve.evaluate(at)
+        for prop in _CAMERA_PROPS:
+            columns[prop].append(values[prop])
+    return {"start": first, "end": last, **{prop: _column(column, 1) for prop, column in columns.items()}}
+
+
+def rna_scene_movie():
+    """THE SCENE'S OWN ANIMATION, AS A GAME PLAYS IT (a cutscene, `blender-play-movie.ts`): the
+    scene's range, rate and camera, its markers with the camera each is bound to (the cuts
+    Blender's playback makes, `BKE_scene_camera_switch_find`), and every object the movie moves:
+    each animated object's own transform stack (its active action and NLA strips, the curves whole,
+    as the clip door ships a bone's), what places that transform in its parent's space, its
+    constraints, and for a camera its data's projection and the stack that keys it. A camera a
+    marker or the scene names comes too, animated or not, so a game can look through it.
+
+    READ ONLY, and it never moves the frame: the curves are read, not evaluated."""
+    scene = bpy.context.scene
+    view_layer = bpy.context.view_layer
+    fps = float(scene.render.fps) / float(scene.render.fps_base or 1.0)
+    markers = []
+    for marker in scene.timeline_markers:
+        markers.append({"name": marker.name, "frame": int(marker.frame),
+                        "camera": marker.camera.name if marker.camera is not None else None})
+    wanted = {marker["camera"] for marker in markers if marker["camera"]}
+    if scene.camera is not None:
+        wanted.add(scene.camera.name)
+
+    def transform(path):
+        return path if _OBJECT_PATH.match(path) or path == "hide_render" else None
+
+    def projection(path):
+        return path if path in _CAMERA_PROPS else None
+
+    objects = []
+    animated = {}
+    for obj in view_layer.objects:
+        own = _owner_animated(obj, transform, animated)
+        camera = None
+        if obj.type == "CAMERA" and obj.data is not None:
+            data = obj.data
+            camera = {
+                "type": data.type, "lens": float(data.lens), "sensor_width": float(data.sensor_width),
+                "sensor_height": float(data.sensor_height), "sensor_fit": data.sensor_fit,
+                "ortho_scale": float(data.ortho_scale), "clip_start": float(data.clip_start),
+                "clip_end": float(data.clip_end), "shift_x": float(data.shift_x), "shift_y": float(data.shift_y),
+                "renderHidden": bool(obj.hide_render),
+                **({"keyed": True} if _owner_animated(data, projection, animated) else {}),
+            }
+        if not own and (camera is None or (obj.name not in wanted and "keyed" not in camera)):
+            continue
+        unsupported = []
+        parent = obj.parent
+        if parent is None:
+            pre = mathutils.Matrix.Identity(4)
+        elif obj.parent_type == "OBJECT":
+            pre = obj.matrix_parent_inverse
+        else:
+            # Parented to a bone, a vertex or a curve: the offset it has now is held.
+            pre = (parent.matrix_world.inverted_safe() @ obj.matrix_world) @ obj.matrix_basis.inverted_safe()
+            unsupported.append("its %s parenting (held where it is now)" % obj.parent_type.lower())
+        mode = obj.rotation_mode
+        if mode == "QUATERNION":
+            delta = obj.delta_rotation_quaternion.normalized()
+        elif mode == "AXIS_ANGLE":
+            delta = mathutils.Quaternion((1.0, 0.0, 0.0, 0.0))
+        else:
+            delta = mathutils.Euler(obj.delta_rotation_euler, mode).to_quaternion()
+        adt = obj.animation_data
+        if adt is not None:
+            for path in sorted({fc.data_path for fc in adt.drivers if _OBJECT_PATH.match(fc.data_path)}):
+                unsupported.append("the driver on its %s" % path)
+        constraints = _object_constraints(obj)
+        for con in constraints:
+            if con["enabled"] and con["type"] not in ("DAMPED_TRACK", "TRACK_TO"):
+                unsupported.append("its %s constraint %r" % (con["type"].replace("_", " ").title(), con["name"]))
+        sampled = _sample_object(obj, pre, delta, int(scene.frame_start), int(scene.frame_end), unsupported) if own else None
+        if camera is not None and camera.pop("keyed", False):
+            camera["sampled"] = _sample_camera(obj.data, int(scene.frame_start), int(scene.frame_end))
+        objects.append({
+            "name": obj.name,
+            "type": obj.type,
+            "parent": parent.name if parent is not None else None,
+            **({"sampled": sampled} if sampled is not None else {}),
+            "rotationMode": mode,
+            "channels": {
+                "location": [float(v) for v in obj.location],
+                "rotation_quaternion": [float(v) for v in obj.rotation_quaternion],
+                "rotation_euler": [float(v) for v in obj.rotation_euler],
+                "rotation_axis_angle": [float(v) for v in obj.rotation_axis_angle],
+                "scale": [float(v) for v in obj.scale],
+            },
+            "delta": {"location": [float(v) for v in obj.delta_location], "rotation": [float(v) for v in delta],
+                      "scale": [float(v) for v in obj.delta_scale]},
+            "pre": _matrix_rows(pre),
+            "constraints": constraints,
+            **({"camera": camera} if camera is not None else {}),
+            **({"unsupported": unsupported} if unsupported else {}),
+        })
+    return {
+        "scene": {"name": scene.name, "start": int(scene.frame_start), "end": int(scene.frame_end), "fps": fps,
+                  "current": int(scene.frame_current),
+                  "camera": scene.camera.name if scene.camera is not None else None},
+        "markers": sorted(markers, key=lambda marker: marker["frame"]),
+        "objects": objects,
+        # WHAT EACH COLLECTION HOLDS (its objects and its children's), for the collections that hold
+        # something the movie moves or an armature: a sequence scoped to one drives only those.
+        "collections": _movie_collections({one["name"] for one in objects}),
+    }
+
+
+def _owner_animated(owner, accept, cache):
+    """Whether an owner's own properties (`accept` names them) are keyed by an action it shows: its
+    active action or an unmuted NLA strip's. One look per action and owner kind, kept in `cache`:
+    a level's armatures share their few actions, and their curves are bones', not the object's."""
+    adt = getattr(owner, "animation_data", None)
+    if adt is None:
+        return False
+    actions = [adt.action] if adt.action is not None else []
+    for track in adt.nla_tracks:
+        if not track.mute:
+            actions.extend(strip.action for strip in track.strips if strip.action is not None and not strip.mute)
+    for action in actions:
+        key = (action.name, accept)
+        if key not in cache:
+            # EVERY SLOT'S CURVES: a camera's object and its lens share one action through two slots.
+            curves = list(getattr(action, "fcurves", None) or ())
+            for layer in getattr(action, "layers", ()):
+                for strip in getattr(layer, "strips", ()):
+                    for bag in (getattr(strip, "channelbags", None) or ()):
+                        curves.extend(bag.fcurves)
+            cache[key] = any(accept(fcurve.data_path) for fcurve in curves)
+        if cache[key]:
+            return True
+    return False
+
+
+def _movie_collections(moving):
+    out = {}
+    for coll in bpy.data.collections:
+        names = [obj.name for obj in coll.all_objects]
+        if any(name in moving or bpy.data.objects[name].type == "ARMATURE" for name in names):
+            out[coll.name] = names
+    return out
 
 
 # `Keyframe.type`'s significance order, mirrored from the `KEYFRAME_STATE`
@@ -5892,6 +6273,9 @@ def _dispatch(request):
     if op == "action-clip":
         return rna_action_clip(request.get("object"), request.get("bake", True), request.get("action"),
                                request.get("summary", True))
+    # THE SCENE'S MOVIE (a game's cutscene): a read, like the clip door.
+    if op == "scene-movie":
+        return rna_scene_movie()
     if op == "outliner":
         return rna_outliner(request.get("selected"))
     if op == "outliner-set":
