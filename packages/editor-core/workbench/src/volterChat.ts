@@ -25,7 +25,9 @@ import { IHarnessChatNavigationService } from './volterChatNavigation.js';
 // Contribute the existing action for our session; the workbench owns its UI.
 MenuRegistry.appendMenuItem(MenuId.ChatInputSecondary, {
 	command: { id: 'workbench.action.chat.openPermissionPicker', title: localize('runtimePermissions', 'Set Permissions') },
-	group: 'navigation', order: 1,
+	// Keep the effective permission visible before optional provider pickers:
+	// the native secondary toolbar always retains its first action on overflow.
+	group: 'navigation', order: -1,
 	when: ContextKeyExpr.equals('chatSessionType', 'supercode'),
 });
 

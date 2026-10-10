@@ -72,6 +72,12 @@ it, the welcome also shows Sign in with Claude, which does the same for Claude C
 reconnects without a reload. Other agents Volter Harness supports (Gemini, Grok and more) can
 be chosen from Chat's agent picker.
 
+The permission picker beneath the composer shows its selected mode throughout
+the conversation, including when the toolbar compacts. It stays ahead of optional
+provider controls on that row. This changes the native control's presentation;
+the harness and conversation still determine its permission choices and defaults
+([source and qualification](docs/CHAT-PERMISSIONS.md)).
+
 Other extensions install from the **Extensions** view; Claude Code's official extension is
 `@id:Anthropic.claude-code`. No agent extension is bundled.
 
