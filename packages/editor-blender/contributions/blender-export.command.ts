@@ -62,12 +62,18 @@ async function bakeClips(): Promise<{ clips: WebExportClips; failed: string[] }>
   const failed: string[] = [];
   /** A clip by skeleton and action, as Play's shared cache keys it. */
   const shared = new Map<string, number>();
+  /** AN ACTION THAT IS ANOTHER SKELETON'S, by skeleton: said in a line, not shipped. A file with a
+   *  Plunger, a Scavenger and a Warrior baked every one's actions for every skeleton (bug rigs share a
+   *  `root`, so the others' came out as partial clips): the opening film shipped 567 clips, 67 MB. */
+  const foreign = new Map<string, string>();
   for (const [name, armature] of Object.entries(facts.armatures).sort(([a], [b]) => a.localeCompare(b))) {
     const table: Record<string, number | string> = {};
     armatures[name] = table;
     const skeleton = armature.bones.map((bone) => bone.name).sort().join('\u0001');
     for (const action of actions) {
       const key = `${action}\u0000${skeleton}`;
+      const theirs = foreign.get(key);
+      if (theirs !== undefined) { table[action] = theirs; continue; }
       const known = shared.get(key);
       if (known !== undefined) {
         const clip = clips[known] ?? null;
@@ -77,6 +83,16 @@ async function bakeClips(): Promise<{ clips: WebExportClips; failed: string[] }>
       try {
         const clip = await blenderActionClip({ object: name, action, summary: false });
         if (clip === null) throw new Error("Blender's session is not started");
+        // (counted from the curves it keys: `bones` samples every bone of the armature, keyed or not)
+        const played = new Set(clip.tracks.map((track) => track.bone)).size;
+        const missing = new Set(clip.unplayedBones ?? []).size;
+        if (clip.reason || missing > played) {
+          // (an object's own movement plays in the scene's movie; it is no armature's clip)
+          const why = clip.reason ?? `it is another skeleton's action: ${missing} of the ${played + missing} bones it keys are not this armature's`;
+          foreign.set(key, why);
+          table[action] = why;
+          continue;
+        }
         clips.push(clip);
         table[action] = clips.length - 1;
         if (known === undefined) shared.set(key, clips.length - 1);
