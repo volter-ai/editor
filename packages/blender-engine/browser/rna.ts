@@ -772,4 +772,26 @@ export interface BlenderSceneMovie {
   /** What each collection holds (recursively), for collections holding a moving object or an
    *  armature: a sequence scoped to a collection drives only those. */
   readonly collections?: Readonly<Record<string, readonly string[]>>;
+  /** MATERIALS whose Principled inputs a curve keys (`_sample_material`, docs/SCENE-ANIMATION.md
+   *  step 5): base colour, emission (colour times strength) and alpha at every scene frame, each
+   *  present only when keyed. */
+  readonly materials?: readonly {
+    readonly name: string;
+    readonly start: number;
+    readonly end: number;
+    readonly color?: BlenderClipColumn;
+    readonly emissive?: BlenderClipColumn;
+    readonly opacity?: BlenderClipColumn;
+  }[];
+  /** MESHES whose shape keys a curve keys (`_sample_shapes`, step 5): each keyed key's offset at
+   *  every vertex (from the key it is relative to), its value at every scene frame and the value the
+   *  presented geometry already holds; `mapped` false when modifiers change the mesh's vertices. */
+  readonly shapes?: readonly {
+    readonly object: string;
+    readonly start: number;
+    readonly end: number;
+    readonly vertices: number;
+    readonly mapped: boolean;
+    readonly keys: readonly { readonly name: string; readonly delta: BlenderClipColumn; readonly values: BlenderClipColumn; readonly current: number }[];
+  }[];
 }

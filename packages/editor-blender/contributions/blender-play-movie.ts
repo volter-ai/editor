@@ -52,8 +52,11 @@ export interface PlayMovie {
    *  it names, placed where it says: `place`, the mixer's evaluation, `settle`. */
   pose(frame: number, scope?: MovieScope): void;
   /** Set the frame on the mixer (nothing moves until it evaluates); null holds the movie off it, so
-   *  an evaluation for others leaves its objects where they stand. */
-  place(frame: number | null, scope?: MovieScope): void;
+   *  an evaluation for others leaves its objects where they stand (its materials still take the
+   *  `presented` frame: the presenter does not follow a material's animation). `presented` is the
+   *  frame the drawn geometry was evaluated at (Blender's own; the read's when absent): a shape key
+   *  plays relative to the value it already has there. */
+  place(frame: number | null, scope?: MovieScope, presented?: number): void;
   /** After the mixer: a sequence carried to where the game puts it, and the aimed objects turned. */
   settle(): void;
   /** Its actions off the mixer. */
@@ -155,6 +158,113 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
     }
     objects.push({ data: entry, object, action, projection, projectionStart: lens?.start ?? start });
   }
+  // MATERIALS AND SHAPE KEYS (`docs/SCENE-ANIMATION.md` step 5): more clips on the same mixer, placed
+  // with the objects'. A material's keyed inputs drive the presented material of its name (through one
+  // mesh that wears it: the material is one object, shared); a mesh's keyed shape keys become morph
+  // targets on its drawn geometry (each drawn vertex takes its Blender vertex's offset, `blenderVertex`,
+  // and the normals the offset gives it), driven by the value Blender gives each key there minus the
+  // value the drawn geometry already holds (its value at the presented frame, subtracted in `settle`).
+  const materialActions: THREE.AnimationAction[] = [];
+  const shapeActions: THREE.AnimationAction[] = [];
+  const shapeMeshes: { mesh: THREE.Mesh; keys: Float32Array[] }[] = [];
+  const extraClip = (name: string, tracks: THREE.KeyframeTrack[], into: THREE.AnimationAction[]): void => {
+    if (!tracks.length) return;
+    const action = mixer.clipAction(new THREE.AnimationClip(name, (frames - 1) / fps, tracks));
+    action.setLoop(THREE.LoopOnce, 1);
+    action.clampWhenFinished = true;
+    action.timeScale = 0;
+    into.push(action);
+  };
+  const extras = (): THREE.AnimationAction[] => [...materialActions, ...shapeActions];
+  /** A key's value at a scene frame, from its sampled column. */
+  const valueAt = (values: Float32Array, frame: number): number =>
+    values.length <= 1 ? values[0] ?? 0 : values[Math.max(0, Math.min(values.length - 1, Math.round(frame - start)))]!;
+  const timesOf = (values: Float32Array, stride: number): Float32Array =>
+    values.length === stride ? new Float32Array([0]) : times.slice(0, values.length / stride);
+  for (const entry of data.materials ?? []) {
+    let path: string | null = null;
+    let material: THREE.Material | null = null;
+    view.root.traverse((object) => {
+      const mesh = object as THREE.Mesh;
+      if (path || !mesh.isMesh) return;
+      const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const index = list.findIndex((one) => one?.name === entry.name);
+      if (index < 0) return;
+      path = Array.isArray(mesh.material) ? `${mesh.uuid}.material[${index}]` : `${mesh.uuid}.material`;
+      material = list[index]!;
+    });
+    const worn = material as THREE.Material | null;
+    if (!path || !worn) { warnings.push(`The keyed material "${entry.name}" is not drawn here, so its animation does not play.`); continue; }
+    const tracks: THREE.KeyframeTrack[] = [];
+    if (entry.color) { const values = float32Of(entry.color); tracks.push(new THREE.ColorKeyframeTrack(`${path}.color`, timesOf(values, 3), values)); }
+    if (entry.emissive) {
+      const values = float32Of(entry.emissive);
+      tracks.push(new THREE.ColorKeyframeTrack(`${path}.emissive`, timesOf(values, 3), values));
+      if ('emissiveIntensity' in worn) (worn as THREE.MeshStandardMaterial).emissiveIntensity = 1;
+    }
+    if (entry.opacity) {
+      const values = float32Of(entry.opacity);
+      tracks.push(new THREE.NumberKeyframeTrack(`${path}.opacity`, timesOf(values, 1), values));
+      worn.transparent = true;
+      worn.needsUpdate = true;
+    }
+    extraClip(`movie-material:${entry.name}`, tracks, materialActions);
+  }
+  for (const entry of data.shapes ?? []) {
+    const owner = view.objectForBlenderName(entry.object);
+    if (!owner) continue;
+    if (!entry.mapped) { warnings.push(`${entry.object}: its shape keys play only in Blender, not in a game: its modifiers change its vertices.`); continue; }
+    const meshes: THREE.Mesh[] = [];
+    owner.traverse((object) => { const mesh = object as THREE.Mesh; if (mesh.isMesh && mesh.geometry.getAttribute('blenderVertex')) meshes.push(mesh); });
+    for (const mesh of meshes) {
+      const geometry = mesh.geometry;
+      const source = geometry.getAttribute('blenderVertex') as THREE.BufferAttribute;
+      const drawn = geometry.getAttribute('position').count;
+      const morphs: THREE.BufferAttribute[] = [];
+      const normals: THREE.BufferAttribute[] = [];
+      const dictionary: Record<string, number> = {};
+      const tracks: THREE.KeyframeTrack[] = [];
+      const keys: Float32Array[] = [];
+      const position = geometry.getAttribute('position') as THREE.BufferAttribute;
+      const normal = geometry.getAttribute('normal') as THREE.BufferAttribute | undefined;
+      let fits = true;
+      entry.keys.forEach((key, k) => {
+        const delta = float32Of(key.delta);
+        const offsets = new Float32Array(drawn * 3);
+        for (let j = 0; j < drawn; j++) {
+          const from = source.getX(j);
+          if (from >= entry.vertices) { fits = false; continue; }
+          offsets[j * 3] = delta[from * 3]!;
+          offsets[j * 3 + 1] = delta[from * 3 + 1]!;
+          offsets[j * 3 + 2] = delta[from * 3 + 2]!;
+        }
+        morphs.push(new THREE.BufferAttribute(offsets, 3));
+        // THE NORMALS THE OFFSET GIVES: the shape's own, less the drawn ones (smooth over the drawn faces)
+        if (normal) {
+          const shaped = new THREE.BufferGeometry();
+          shaped.setAttribute('position', new THREE.BufferAttribute(Float32Array.from(position.array as Float32Array, (v, i) => v + offsets[i]!), 3));
+          if (geometry.index) shaped.setIndex(geometry.index);
+          shaped.computeVertexNormals();
+          const turned = shaped.getAttribute('normal') as THREE.BufferAttribute;
+          normals.push(new THREE.BufferAttribute(Float32Array.from(turned.array as Float32Array, (v, i) => v - (normal.array as Float32Array)[i]!), 3));
+          shaped.dispose();
+        }
+        dictionary[key.name] = k;
+        const values = float32Of(key.values);
+        keys.push(values);
+        tracks.push(new THREE.NumberKeyframeTrack(`${mesh.uuid}.morphTargetInfluences[${k}]`, timesOf(values, 1), values));
+      });
+      if (!fits) { warnings.push(`${entry.object}: its drawn vertices do not match its mesh, so its shape keys play only in Blender.`); continue; }
+      geometry.morphAttributes['position'] = morphs;
+      if (normal && normals.length === morphs.length) geometry.morphAttributes['normal'] = normals;
+      geometry.morphTargetsRelative = true;
+      mesh.updateMorphTargets();
+      mesh.morphTargetDictionary = dictionary;
+      for (const one of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) one.needsUpdate = true;
+      shapeMeshes.push({ mesh, keys });
+      extraClip(`movie-shapes:${entry.object}:${mesh.uuid}`, tracks, shapeActions);
+    }
+  }
   // PARENTS BEFORE CHILDREN, so an object aimed by a constraint is turned from its parent's pose.
   const depth = (object: THREE.Object3D): number => { let d = 0; for (let at = object.parent; at; at = at.parent) d += 1; return d; };
   const aiming = objects
@@ -167,6 +277,8 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
   let frameNow = data.scene.current;
   /** What the last `place` asked for (null: held off the mixer), for `settle`. */
   let placed: { readonly scope: MovieScope | undefined } | null = null;
+  /** The frame the drawn geometry was evaluated at: Blender's own (the director says), else the read's. */
+  let presentedFrame = data.scene.current;
   const collections = new Map(Object.entries(data.collections ?? {}).map(([name, names]) => [name, new Set(names)]));
   /** A still object's pose as the file has it, read before it was first placed. */
   const stills = new Map<THREE.Object3D, THREE.Matrix4>();
@@ -251,9 +363,20 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
       mixer.update(0);
       this.settle();
     },
-    place(frame, scope) {
+    place(frame, scope, presented) {
+      presentedFrame = presented ?? presentedFrame;
       if (frame === null) {
         for (const entry of objects) if (entry.action) entry.action.enabled = false;
+        for (const action of shapeActions) action.enabled = false;
+        for (const { mesh } of shapeMeshes) mesh.morphTargetInfluences?.fill(0);
+        // (the presenter draws a material's file value, not its animation: the movie keeps it)
+        const held = Math.max(0, Math.min(end, presentedFrame) - start) / fps;
+        for (const action of materialActions) {
+          action.enabled = true;
+          if (!action.isRunning()) action.play();
+          action.paused = false;
+          action.time = held;
+        }
         placed = null;
         return;
       }
@@ -270,9 +393,23 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
         entry.action.paused = false;
         entry.action.time = time;
       }
+      // (materials and shape keys play in the whole movie; a sequence scoped to a collection leaves them)
+      for (const action of extras()) {
+        action.enabled = !scope?.only;
+        if (!action.enabled) continue;
+        if (!action.isRunning()) action.play();
+        action.paused = false;
+        action.time = time;
+      }
     },
     settle() {
       if (!placed) return;
+      // SHAPE KEYS relative to what the drawn geometry already holds (its value at the presented frame)
+      for (const { mesh, keys } of shapeMeshes) {
+        const influences = mesh.morphTargetInfluences;
+        if (!influences) continue;
+        keys.forEach((values, k) => { influences[k] = (influences[k] ?? 0) - valueAt(values, presentedFrame); });
+      }
       const scope = placed.scope;
       const inScope = (entry: MovieObject): boolean => !scope?.only || scope.only.has(entry.data.name);
       // PLACED: every moving object at the top of the sequence (its parent not in it) is carried by
@@ -309,6 +446,12 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
         if (!entry.action) continue;
         const clip = entry.action.getClip();
         entry.action.stop();
+        mixer.uncacheAction(clip);
+        mixer.uncacheClip(clip);
+      }
+      for (const action of extras()) {
+        const clip = action.getClip();
+        action.stop();
         mixer.uncacheAction(clip);
         mixer.uncacheClip(clip);
       }

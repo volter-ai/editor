@@ -100,6 +100,8 @@ export class BlenderSkinDirector {
   #movie: PlayMovie | null = null;
   #movieKey: string | null = null;
   #moviePosed: number | null = null;
+  /** What the last movie read held (null before one): said in `state()`, so an empty movie says why. */
+  #movieRead: { objects: number; materials: number; shapes: number } | null = null;
   /** The Timeline's subject: the armature its keys and header describe, and what its header was
    *  read for. Read again only when that changes. */
   #armature: string | null = null;
@@ -178,6 +180,8 @@ export class BlenderSkinDirector {
      *  frame it last posed (null: posed by Blender, standing at its own frame), and the camera the
      *  camera view looks through. */
     movie: { objects: number; camera: string | null; posed: number | null; viewCamera: string | null } | null;
+    /** What the last read of the scene's movie held: objects moved, materials and meshes keyed. */
+    movieRead: { objects: number; materials: number; shapes: number } | null;
   } {
     const clip = this.#clip;
     return {
@@ -198,6 +202,7 @@ export class BlenderSkinDirector {
       warnings: this.#warnings,
       engineCalls: this.#engineCalls,
       blenderFrame: clip?.frameCurrent ?? null,
+      movieRead: this.#movieRead,
       movie: this.#movie ? { objects: this.#movie.objects.length, camera: this.#moviePosed === null ? null : this.#movie.cameraAt(this.#moviePosed), posed: this.#moviePosed, viewCamera: this.#view?.cameraViewCamera() ?? null } : null,
     };
   }
@@ -285,8 +290,9 @@ export class BlenderSkinDirector {
       this.#movieKey = movieKey;
       this.#engineCalls++;
       const data = await read.movie();
+      this.#movieRead = data ? { objects: data.objects.length, materials: data.materials?.length ?? 0, shapes: data.shapes?.length ?? 0 } : null;
       this.#movie?.dispose();
-      this.#movie = data && data.objects.length ? playMovie(view, data, sceneMixer(view).mixer) : null;
+      this.#movie = data && (data.objects.length || data.materials?.length || data.shapes?.length) ? playMovie(view, data, sceneMixer(view).mixer) : null;
       for (const warning of this.#movie?.warnings ?? []) this.#say(`movie:${warning}`, warning);
     }
     this.#pose();
@@ -339,7 +345,8 @@ export class BlenderSkinDirector {
     // picture is Blender's, as for the armatures (an object moved by hand and not keyed stays where it
     // was put until the frame changes, as in Blender), so the movie holds off the mixer there.
     const movieHere = !!this.#movie && !(atBlender && !playing);
-    this.#movie?.place(movieHere ? frame : null);
+    // (the drawn geometry is Blender's evaluation at its own frame: a shape key plays relative to it)
+    this.#movie?.place(movieHere ? frame : null, undefined, facts.frame);
     this.#moviePosed = movieHere ? frame : null;
     const placed: { name: string; pose: MixerPose; armature: BlenderArmature; layers: PoseLayer[]; check: boolean; unsupported: string[] }[] = [];
     for (const [name, pose] of this.#poses) {
