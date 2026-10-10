@@ -7,8 +7,9 @@
  * - BLENDER SAMPLES, THREE.JS PLAYS. Blender evaluates every animated object's transform at every
  *   scene frame (`session.py`'s `_sample_object`: its channels through `FCurve.evaluate`, with its
  *   delta transform, placed in its parent's space), and the movie is one `THREE.AnimationClip` of
- *   position, quaternion, scale (and visibility, where it is keyed) tracks on the copy's objects.
- *   A seek sets the clip's time and lets the mixer pose them.
+ *   position, quaternion, scale (and visibility, where it is keyed) tracks on the copy's objects,
+ *   played on the scene's one mixer beside the armatures (`blender-scene-mixer.ts`): `place` sets
+ *   the clips' time, the scene evaluates, `settle` places a sequence and turns the aimed objects.
  * - A CAMERA'S PROJECTION is sampled the same way (lens, sensor, shift, clip range) and fitted to
  *   the game's own frame when it is looked through.
  * - THE CAMERA AT A FRAME is the camera of the last marker at or before it that is bound to one
@@ -48,8 +49,15 @@ export interface PlayMovie {
   /** Every object it moves, by Blender name. */
   readonly objects: readonly string[];
   /** Pose every animated object at a scene frame, whole or fractional; within `scope` only those
-   *  it names, placed where it says. */
+   *  it names, placed where it says: `place`, the mixer's evaluation, `settle`. */
   pose(frame: number, scope?: MovieScope): void;
+  /** Set the frame on the mixer (nothing moves until it evaluates); null holds the movie off it, so
+   *  an evaluation for others leaves its objects where they stand. */
+  place(frame: number | null, scope?: MovieScope): void;
+  /** After the mixer: a sequence carried to where the game puts it, and the aimed objects turned. */
+  settle(): void;
+  /** Its actions off the mixer. */
+  dispose(): void;
   /** The objects a collection holds (recursively), by Blender name; null when the movie names no
    *  such collection. */
   collection(name: string): ReadonlySet<string> | null;
@@ -109,10 +117,10 @@ interface MovieObject {
 }
 
 /** The scene's movie bound to the game's copy (`view`, the detached copy's view). */
-export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): PlayMovie {
+/** `mixer`: the scene's (`sceneMixer(view).mixer`); absent, the movie gets one of its own. */
+export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mixer = new THREE.AnimationMixer(view.root)): PlayMovie {
   const warnings: string[] = [];
   const objects: MovieObject[] = [];
-  const mixer = new THREE.AnimationMixer(view.root);
   const { start, end, fps } = data.scene;
   const frames = Math.max(1, end - start + 1);
   const times = Float32Array.from({ length: frames }, (_, i) => i / fps);
@@ -157,6 +165,8 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
   const cutMarkers = markers.filter((marker) => marker.camera !== null && !(byName.get(marker.camera)?.data.camera?.renderHidden ?? false));
 
   let frameNow = data.scene.current;
+  /** What the last `place` asked for (null: held off the mixer), for `settle`. */
+  let placed: { readonly scope: MovieScope | undefined } | null = null;
   const collections = new Map(Object.entries(data.collections ?? {}).map(([name, names]) => [name, new Set(names)]));
   /** A still object's pose as the file has it, read before it was first placed. */
   const stills = new Map<THREE.Object3D, THREE.Matrix4>();
@@ -237,7 +247,18 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
     warnings,
     collection: (name) => collections.get(name) ?? null,
     pose(frame, scope) {
+      this.place(frame, scope);
+      mixer.update(0);
+      this.settle();
+    },
+    place(frame, scope) {
+      if (frame === null) {
+        for (const entry of objects) if (entry.action) entry.action.enabled = false;
+        placed = null;
+        return;
+      }
       frameNow = frame;
+      placed = { scope };
       const inScope = (entry: MovieObject): boolean => !scope?.only || scope.only.has(entry.data.name);
       const time = Math.max(0, Math.min(end, frame) - start) / fps;
       for (const entry of objects) {
@@ -249,7 +270,11 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
         entry.action.paused = false;
         entry.action.time = time;
       }
-      mixer.update(0);
+    },
+    settle() {
+      if (!placed) return;
+      const scope = placed.scope;
+      const inScope = (entry: MovieObject): boolean => !scope?.only || scope.only.has(entry.data.name);
       // PLACED: every moving object at the top of the sequence (its parent not in it) is carried by
       // the turn and shift that takes the anchor to where `at` stands in the game.
       const anchor = scope?.place ? anchorOf(scope.place.anchor) : null;
@@ -278,6 +303,16 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
         }
       }
       constrain(inScope);
+    },
+    dispose() {
+      for (const entry of objects) {
+        if (!entry.action) continue;
+        const clip = entry.action.getClip();
+        entry.action.stop();
+        mixer.uncacheAction(clip);
+        mixer.uncacheClip(clip);
+      }
+      placed = null;
     },
     cameraAt(frame) {
       // Compared with the whole frame, as Blender's playback compares it.

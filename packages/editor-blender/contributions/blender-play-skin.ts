@@ -34,6 +34,10 @@
  * THE GAME'S CLOCK DRIVES IT: the runner advances it by each update's `dt`
  * (`@volter/play`'s `play-script.ts`), so pause, step, speed and Restart hold for
  * animation exactly as they do for the script.
+ *
+ * ONE MIXER for the copy (`blender-scene-mixer.ts`, `docs/SCENE-ANIMATION.md` step 4): every
+ * armature's layers and the movie are actions on it, each update places them all, the mixer
+ * evaluates once, and the constraints settle after it, as on the Timeline.
  */
 import type { BlenderActionClip, BlenderSceneMovie } from '@volter/blender-engine/browser/rna';
 import type { BlenderArmature } from '@volter/blender-engine/browser/three/blender-runtime-armature';
@@ -44,6 +48,7 @@ import { actionLayer, nlaLayers, type PoseLayer } from './blender-pose';
 import { MixerPose, mixerClip, type ConstraintOverride, type MixerClip } from './blender-mixer-pose';
 import { playMovie, type MovieMarker, type MovieScope, type PlayMovie } from './blender-play-movie';
 import { remedy } from './blender-remedy';
+import { sceneMixer } from './blender-scene-mixer';
 
 export interface PlayActionOptions {
   /** Seconds to crossfade from what played before (default 0.2). */
@@ -196,6 +201,8 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const sceneStart = facts.clock?.start ?? 1;
   const sceneLength = Math.max(1, (facts.clock?.end ?? sceneStart + 249) - sceneStart + 1);
   const armatures = new Map<string, Armature>();
+  /** THE COPY'S ONE MIXER: every armature's actions and the movie's. */
+  const scene = sceneMixer(view);
   let time = 0;
   let disposed = false;
   /** The scene frame a cutscene holds, or null while the game animates. */
@@ -213,7 +220,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       const data = await readMovie();
       if (disposed) return;
       if (!data) { movieWarnings.push("The scene's movie could not be read: Blender's session is not started."); return; }
-      movie = playMovie(view, data);
+      movie = playMovie(view, data, scene.mixer);
       movieWarnings.push(...movie.warnings);
       for (const said of movie.warnings) options.warn?.(said);
     } catch (error) {
@@ -316,7 +323,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   for (const rig of view.skeletons.rigs()) {
     const entry = facts.armatures[rig.armature];
     if (!entry) continue;
-    const pose = new MixerPose(rig);
+    const pose = new MixerPose(rig, scene.mixer);
     pose.facts(entry);
     for (const thing of pose.unsupported()) warnings.push(`${rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
     const armature: Armature = { rig, pose, facts: entry, clips: new Map(), failed: new Map(), line: [], tracks: new Map(), constraints: new Map(), posed: [] };
@@ -405,10 +412,15 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     lastSources.set(armature, sources);
     return waiting ? null : layers;
   };
-  const poseArmature = (armature: Armature, layers: PoseLayer[]): void => {
+  /** SET an armature's layers on the mixer (it moves at the next evaluation). */
+  const placeArmature = (armature: Armature, layers: PoseLayer[]): void => {
     const sources = lastSources.get(armature) ?? [];
     armature.posed = layers.map((layer, i) => ({ track: sources[i] ?? null, action: layer.clip.action, frame: layer.frame, influence: layer.influence, blend: layer.blend }));
-    armature.pose.apply(layers, {
+    armature.pose.place(layers);
+  };
+  /** AFTER THE MIXER: an armature's constraints, aimed at the copy's objects or what the game set. */
+  const settleArmature = (armature: Armature): void => {
+    armature.pose.settle({
       object: (name) => view.objectForBlenderName(name),
       override: (bone, name) => armature.constraints.get(`${bone}\u0000${name}`),
     });
@@ -455,7 +467,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       seek(frame, scope) {
         if (disposed) return;
         movieFrame = frame;
-        if (frame === null) { movieOnly = null; return; }
+        if (frame === null) { movieOnly = null; movie?.place(null); return; }
         if (!movie) void loadMovie();
         const only = scope?.collection ? movie?.collection(scope.collection) ?? new Set<string>() : null;
         movieOnly = only;
@@ -464,12 +476,16 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
           ...(only ? { only } : {}),
           ...(at && typeof at === 'object' && 'matrixWorld' in at && scope?.anchor ? { place: { at, anchor: scope.anchor } } : {}),
         };
-        movie?.pose(frame, movieScope);
+        movie?.place(frame, movieScope);
+        const placed: Armature[] = [];
         for (const armature of armatures.values()) {
           if (only && !only.has(armature.rig.armature)) continue;
           const layers = movieLayersOf(armature, frame);
-          if (layers) poseArmature(armature, layers);
+          if (layers) { placeArmature(armature, layers); placed.push(armature); }
         }
+        scene.evaluate();
+        movie?.settle();
+        for (const armature of placed) settleArmature(armature);
       },
       hasCollection: (name) => movie?.collection(name) != null,
       cameraAt: (frame) => movie?.cameraAt(frame) ?? null,
@@ -587,6 +603,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     update(dt) {
       if (disposed) return;
       time += dt;
+      const placed: Armature[] = [];
       for (const armature of armatures.values()) {
         for (const played of armature.line) step(played.weight, dt);
         // What the newest action covers whole is gone; so is what has faded to nothing.
@@ -604,8 +621,15 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
         if (movieFrame !== null && (!movieOnly || movieOnly.has(armature.rig.armature))) continue;
         const layers = layersOf(armature);
         if (!layers) continue;
-        poseArmature(armature, layers);
+        placeArmature(armature, layers);
+        placed.push(armature);
       }
+      // ONE EVALUATION for every character (and a cutscene's objects, held where its last seek placed
+      // them: their placing and aiming is settled again after it)
+      if (placed.length === 0) return;
+      scene.evaluate();
+      if (movieFrame !== null) movie?.settle();
+      for (const armature of placed) settleArmature(armature);
     },
     channels(name, action) {
       const clip = armatures.get(name)?.clips.get(action);
@@ -617,6 +641,8 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       disposed = true;
       for (const armature of armatures.values()) armature.pose.dispose();
       armatures.clear();
+      (movie as PlayMovie | null)?.dispose();
+      movie = null;
     },
   };
 }
