@@ -130,9 +130,11 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
   const { start, end, fps } = data.scene;
   const frames = Math.max(1, end - start + 1);
   const times = Float32Array.from({ length: frames }, (_, i) => i / fps);
+  const unbound: string[] = [];
   for (const entry of data.objects) {
     const object = view.objectForBlenderName(entry.name);
-    if (!object) continue;
+    // (an animated object the copy does not draw by its name was dropped in silence: it is named now)
+    if (!object) { if (entry.sampled || entry.camera?.sampled) unbound.push(entry.name); continue; }
     for (const thing of entry.unsupported ?? []) warnings.push(`${entry.name}: ${thing} plays only in Blender, not in a game.`);
     const sampled = entry.sampled;
     const tracks: THREE.KeyframeTrack[] = [];
@@ -160,6 +162,9 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
       action.timeScale = 0;
     }
     objects.push({ data: entry, object, action, projection, projectionStart: lens?.start ?? start });
+  }
+  if (unbound.length) {
+    warnings.push(`The movie animates ${unbound.length} object(s) this copy does not draw by that name, so they hold still: ${unbound.slice(0, 12).join(', ')}${unbound.length > 12 ? ', …' : ''}.`);
   }
   // MATERIALS AND SHAPE KEYS (`docs/SCENE-ANIMATION.md` step 5): more clips on the same mixer, placed
   // with the objects'. A material's keyed inputs drive the presented material of its name (through one
