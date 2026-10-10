@@ -14,6 +14,7 @@ import { addPlay, ADD_PLAY_USAGE } from './add-play';
 import { camera, CAMERA_OPTIONS, CAMERA_USAGE } from './camera';
 import { play, PLAY_USAGE } from './play';
 import { exportWeb, EXPORT_WEB_USAGE } from './export-web';
+import { exportGltf, EXPORT_GLTF_USAGE } from './export-gltf';
 import { levels, LEVELS_USAGE } from './levels';
 import { launch, prepareSession, VIEW_BUILD_USAGE, viewBuild, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
@@ -79,6 +80,7 @@ try {
   } else if (values.help) {
     console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console [--all] | close    # exit 1 for an unresolved console error; warnings print, exit 0; --all prints every retained entry\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${RENDER_MOVIE_USAGE}    # a film of the Timeline: Blender's render on the three.js engine, encoded to WebM\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)
   cyclotron ${EXPORT_WEB_USAGE}    # the model's game as a static web page (docs/WEB-EXPORT.md)
+  cyclotron ${EXPORT_GLTF_USAGE}    # the model and its animation as glTF, for another engine (docs/SCENE-ANIMATION.md)
   cyclotron ${LEVELS_USAGE}    # the game's levels, and cooking them for play.load (docs/LEVELS.md)
   cyclotron ${HOSTED_USAGE}\n  cyclotron sessions | project | projects\n  cyclotron open <path>\n  cyclotron blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
   } else if (verb === 'levels') {
@@ -100,12 +102,17 @@ try {
       ...(values.workbench ? { workbench: values.workbench } : {}),
     });
   } else if (verb === 'export') {
-    if (positionals[1] !== 'web' || positionals.length > 3) throw new Error(`Usage: cyclotron ${EXPORT_WEB_USAGE}`);
-    await exportWeb(positionals[2] ?? '.', {
-      out: values.out,
-      document: values.document,
-      dump: !values['no-dump'],
-    });
+    if (positionals[1] === 'gltf') {
+      if (positionals.length > 3) throw new Error(`Usage: cyclotron ${EXPORT_GLTF_USAGE}`);
+      await exportGltf(positionals[2] ?? '.', { out: values.out });
+    } else {
+      if (positionals[1] !== 'web' || positionals.length > 3) throw new Error(`Usage: cyclotron ${EXPORT_WEB_USAGE}`);
+      await exportWeb(positionals[2] ?? '.', {
+        out: values.out,
+        document: values.document,
+        dump: !values['no-dump'],
+      });
+    }
   } else if (verb === 'hosted') {
     await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {

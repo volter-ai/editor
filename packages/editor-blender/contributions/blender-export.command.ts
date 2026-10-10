@@ -36,6 +36,7 @@ import {
   type WebExportManifest,
 } from '../web-export/web-export-files';
 import { readBlenderDisplaySettings } from './blender-display-settings';
+import { exportSceneGltf } from './blender-export-gltf';
 
 export const point = 'workspace.command';
 
@@ -208,7 +209,41 @@ async function cookLevel(command: Record<string, unknown>): Promise<EditorComman
   };
 }
 
+/**
+ * THE SCENE AS GLTF (`blender-export-gltf`, docs/SCENE-ANIMATION.md step 6): the presented model with
+ * every armature's actions, the scene's movie and its keyed materials (`blender-export-gltf.ts`),
+ * written to `out` (project-relative, `.gltf`; default `exports/<name>.gltf`).
+ */
+async function exportGltf(command: Record<string, unknown>): Promise<EditorCommandResult> {
+  const documentId = servedModelDocument();
+  const blend = documentId ? modelDocumentSource(documentId) ?? modelDocumentSource(documentId.replace(/#.*$/, '')) : null;
+  if (!blend) return { ok: false, error: 'No model document is open: open the .blend to export, then export again.' };
+  if (blenderModelView.snapshot() === null)
+    return { ok: false, error: `${blend} has not been presented yet: wait for the model to show, then export again.` };
+  const named = command['out'];
+  if (named !== undefined && (typeof named !== 'string' || !/\.gltf$/i.test(named)))
+    return { ok: false, error: `blender-export-gltf's out is a project-relative .gltf path; it was given ${JSON.stringify(named)}.` };
+  const out = (named as string | undefined) ?? `exports/${blend.replace(/^.*\//, '').replace(/\.blend$/i, '')}.gltf`;
+  const started = performance.now();
+  const written = await exportSceneGltf(blenderModelView, {
+    clip: (armature, action) => blenderActionClip({ object: armature, action, summary: false }),
+    movie: () => blenderSceneMovie(),
+  });
+  const text = JSON.stringify(written.json);
+  await editorHost().files.write(out, text);
+  return {
+    ok: true,
+    data: { out, blend, bytes: text.length, animations: written.animations, pointers: written.pointers, skipped: written.skipped, failed: written.failed, ms: Math.round(performance.now() - started) },
+  };
+}
+
 export const commands: CommandContribution['commands'] = {
+  // The model and its animation as glTF: every armature's clips read from Blender as the web export reads them.
+  'blender-export-gltf': {
+    timeoutMs: 30 * 60_000,
+    derivedRefresh: 'none',
+    handle: (command) => exportGltf(command as Record<string, unknown>),
+  },
   // Every clip of every armature is read from Blender, about a second and a half each.
   'blender-export-play': {
     timeoutMs: 30 * 60_000,

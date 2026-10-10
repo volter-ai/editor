@@ -61,6 +61,9 @@ export interface PlayMovie {
   settle(): void;
   /** Its actions off the mixer. */
   dispose(): void;
+  /** Every clip it plays (objects and cameras, materials, shape keys), as three.js tracks on the
+   *  presented objects: what an export writes (`blender-export-gltf`). */
+  clips(): readonly THREE.AnimationClip[];
   /** The objects a collection holds (recursively), by Blender name; null when the movie names no
    *  such collection. */
   collection(name: string): ReadonlySet<string> | null;
@@ -238,7 +241,9 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
           offsets[j * 3 + 1] = delta[from * 3 + 1]!;
           offsets[j * 3 + 2] = delta[from * 3 + 2]!;
         }
-        morphs.push(new THREE.BufferAttribute(offsets, 3));
+        const morph = new THREE.BufferAttribute(offsets, 3);
+        morph.name = key.name;
+        morphs.push(morph);
         // THE NORMALS THE OFFSET GIVES: the shape's own, less the drawn ones (smooth over the drawn faces)
         if (normal) {
           const shaped = new THREE.BufferGeometry();
@@ -252,7 +257,8 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
         dictionary[key.name] = k;
         const values = float32Of(key.values);
         keys.push(values);
-        tracks.push(new THREE.NumberKeyframeTrack(`${mesh.uuid}.morphTargetInfluences[${k}]`, timesOf(values, 1), values));
+        // (by the key's name, through the mesh's dictionary: an exporter writes the target by it)
+        tracks.push(new THREE.NumberKeyframeTrack(`${mesh.uuid}.morphTargetInfluences[${key.name}]`, timesOf(values, 1), values));
       });
       if (!fits) { warnings.push(`${entry.object}: its drawn vertices do not match its mesh, so its shape keys play only in Blender.`); continue; }
       geometry.morphAttributes['position'] = morphs;
@@ -440,6 +446,9 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
         }
       }
       constrain(inScope);
+    },
+    clips() {
+      return [...objects.flatMap((entry) => (entry.action ? [entry.action.getClip()] : [])), ...extras().map((action) => action.getClip())];
     },
     dispose() {
       for (const entry of objects) {

@@ -1383,6 +1383,29 @@ export class BlenderRuntimeView {
     presenterChanged();
   }
 
+  /**
+   * THE AUTHORED MATERIALS, whatever the viewport shows: `run` sees every presented mesh dressed in the
+   * materials its object's slots name (what Material Preview and Rendered show), and each gets back what
+   * it wore after. An export writes the model's own materials in Solid shading too (`blender-export-gltf`).
+   */
+  async withAuthoredMaterials<T>(run: () => Promise<T>): Promise<T> {
+    const worn = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
+    for (const obj of this.frame?.objects ?? []) {
+      if (obj.mesh === null || obj.volume) continue;
+      const mesh = this.objects.get(obj.id) as THREE.Mesh | undefined;
+      if (!mesh?.isMesh) continue;
+      const slots: readonly (string | null)[] = obj.materials.length ? obj.materials : [null];
+      const authored = slots.map((id) => (id === null ? this.fallback : (this.materials.get(id) ?? this.fallback)));
+      worn.set(mesh, mesh.material);
+      mesh.material = obj.materials.length ? authored : authored[0]!;
+    }
+    try {
+      return await run();
+    } finally {
+      for (const [mesh, material] of worn) mesh.material = material;
+    }
+  }
+
   /** Each surface's material for the state: authored, or Solid's, derived from the frame every
    *  time so a replaced node (the skin's) is never left wearing the other. */
   private applyWorkbench(): void {
