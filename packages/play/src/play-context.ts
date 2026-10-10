@@ -280,6 +280,10 @@ export interface ModelPlayAutoplayInput {
 export interface ModelPlayStartInfo {
   /** The start's name, as offered. */
   readonly name: string;
+  /** PLAY FROM HERE: the editor's 3D cursor, in the game's space (`root`'s, Blender's metres), and the
+   *  editing camera's position and a point ahead of it; null where the document lends none. */
+  readonly cursor?: readonly [number, number, number] | null;
+  readonly camera?: { readonly position: readonly [number, number, number]; readonly target: readonly [number, number, number] } | null;
 }
 /** One named start: sets the game's state to its situation (`play.starts`). */
 export type ModelPlayStartSetup = (start: ModelPlayStartInfo) => void;

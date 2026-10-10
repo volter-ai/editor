@@ -1021,6 +1021,22 @@ function BlenderViewportArea({
           // A LEVEL (`play.load`, docs/LEVELS.md), from its cook: its frame replaces the copy's scene
           // in this same view (the stage, the rendered draw and `root` stay), its clips and movie
           // become the run's animation
+          // PLAY FROM HERE: the 3D cursor and the editing camera, in the copy's (Blender's) space
+          startAt: () => {
+            const m = (view.snapshot() as { cursor?: readonly (readonly number[])[] } | null)?.cursor;
+            const cursor = m ? [m[0]![3]!, m[1]![3]!, m[2]![3]!] as const : null;
+            const editing = viewportStages().find(one => one.documentId === modelId)?.rig().drawCamera() as THREE.Camera | undefined;
+            let camera: { position: [number, number, number]; target: [number, number, number] } | null = null;
+            if (editing) {
+              editing.updateWorldMatrix(true, false);
+              view.root.updateWorldMatrix(true, false);
+              const at = editing.getWorldPosition(new THREE.Vector3());
+              const ahead = at.clone().add(editing.getWorldDirection(new THREE.Vector3()).multiplyScalar(10));
+              const p = view.root.worldToLocal(at.clone()), t = view.root.worldToLocal(ahead);
+              camera = { position: [p.x, p.y, p.z], target: [t.x, t.y, t.z] };
+            }
+            return { cursor, camera };
+          },
           preloadLevel: async (level) => { await readCook(level); },
           loadLevel: async (level) => {
             const files = editorHost().files;

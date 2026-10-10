@@ -501,7 +501,7 @@ export function runPlayScript(options: {
           const setup = offeredStarts?.[chosen];
           if (!setup) run.append('play', 'start-refused', { start: chosen, offered: offeredStarts ? Object.keys(offeredStarts) : [], why: offeredStarts ? 'the play script offers no start of that name' : 'the play script offers no starts (play.starts)' });
           else {
-            setup({ name: chosen });
+            setup({ name: chosen, ...(options.startAt?.() ?? {}) });
             run.append('play', 'start', { start: chosen });
           }
         }

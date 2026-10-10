@@ -35,6 +35,9 @@ export interface DocumentPlayStage {
    *  play script when it has one (a level brings its script, as a scene does in other engines),
    *  which then replaces the running script. Absent, the document cannot load levels. */
   readonly loadLevel?: (level: string) => Promise<{ readonly animation?: DocumentPlayAnimation; readonly script?: string | null }>;
+  /** WHERE THE PERSON IS LOOKING, for a start (`play.starts`, "play from here"): the 3D cursor and the
+   *  editing camera's position and aim, in the game's own space (`root`'s). */
+  readonly startAt?: () => { readonly cursor: readonly [number, number, number] | null; readonly camera: { readonly position: readonly [number, number, number]; readonly target: readonly [number, number, number] } | null };
   /** Read a level's cook ahead of its load (`play.preload`), so the load only builds it. */
   readonly preloadLevel?: (level: string) => Promise<void>;
 }
