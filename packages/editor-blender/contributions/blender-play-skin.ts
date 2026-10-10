@@ -43,8 +43,7 @@ import type * as THREE from 'three';
 import { actionLayer, nlaLayers, type PoseLayer } from './blender-pose';
 import { MixerPose, mixerClip, type ConstraintOverride, type MixerClip } from './blender-mixer-pose';
 import { playMovie, type MovieMarker, type MovieScope, type PlayMovie } from './blender-play-movie';
-import { editorHost } from '@volter/sdk/host';
-import { remedy } from './blender-runtime-skin';
+import { remedy } from './blender-remedy';
 
 export interface PlayActionOptions {
   /** Seconds to crossfade from what played before (default 0.2). */
@@ -176,8 +175,20 @@ interface Armature {
 /** Reads that outlive one Play: a document's next Play reuses them (see `shared` below). */
 export type PlayClipCache = Map<string, Promise<BlenderActionClip | null>>;
 
-export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>, cache: PlayClipCache = new Map(),
-  readMovie?: () => Promise<BlenderSceneMovie | null>): PlayAnimation {
+/** Where the animation says what a person should hear at once (beside `warnings`): the editor's
+ *  console in the editor, the page's console in a web export. Absent, only `warnings` keeps it. */
+export interface PlayAnimationOptions {
+  readonly warn?: (message: string) => void;
+  /** The scene's movie (a cutscene's or a sequence's): Blender's `scene-movie` door in the editor,
+   *  the dump's `movie.json` in a web export. Absent, a document lends no movie. */
+  readonly readMovie?: () => Promise<BlenderSceneMovie | null>;
+}
+
+/**
+ * The game's copy animated. It imports no editor host and no Blender (only `blender-pose.ts`, `blender-mixer-pose.ts`, `blender-play-movie.ts` and
+ * three), so a web export plays it too, with `bake` answering clips baked when it was exported.
+ */
+export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>, cache: PlayClipCache = new Map(), options: PlayAnimationOptions = {}): PlayAnimation {
   const warnings: string[] = [];
   const facts = view.animationFacts();
   const actions = Object.keys(facts.actions);
@@ -196,6 +207,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   /** THE MOVIE'S READ, once, started by `prepare` (or by the first cutscene that wants it). */
   let movieRead: Promise<void> | null = null;
   const loadMovie = (): Promise<void> => movieRead ??= (async () => {
+    const readMovie = options.readMovie;
     if (!readMovie) return;
     try {
       const data = await readMovie();
@@ -203,10 +215,10 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       if (!data) { movieWarnings.push("The scene's movie could not be read: Blender's session is not started."); return; }
       movie = playMovie(view, data);
       movieWarnings.push(...movie.warnings);
-      for (const said of movie.warnings) editorHost().console.warn(said, 'blender-animation');
+      for (const said of movie.warnings) options.warn?.(said);
     } catch (error) {
       movieWarnings.push(`The scene's movie could not be read: ${error instanceof Error ? error.message : String(error)}`);
-      editorHost().console.warn(movieWarnings.at(-1)!, 'blender-animation');
+      options.warn?.(movieWarnings.at(-1)!);
     }
   })();
   const lastSources = new Map<Armature, (string | null)[]>();
@@ -431,7 +443,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     warned.add(action);
     const said = `The game plays "${action}", which nothing in the file uses and has no fake user, so Blender drops it the next time the file saves. Give it a fake user (action.use_fake_user = True) or assign it.`;
     warnings.push(said);
-    editorHost().console.warn(said, 'blender-animation');
+    options.warn?.(said);
   };
   const none = (object: THREE.Object3D): Answer => ({ ok: false, why: `${object.name || 'this object'} has no armature` });
 
