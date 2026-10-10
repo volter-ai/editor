@@ -1157,6 +1157,7 @@ function BlenderViewportArea({
     void blenderSkin.sync(view, {
       clip: (armature) => blenderActionClip(armature === null ? {} : { object: armature }),
       bake: (armature, action) => blenderActionClip({ object: armature, action, summary: false }),
+      movie: () => blenderSceneMovie(),
     }).catch((thrown: unknown) => {
       if (live) editorHost().console.warn(`This file's action could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
     });

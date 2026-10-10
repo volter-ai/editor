@@ -39,13 +39,15 @@
  * GEOMETRY per frame (shape keys, a Displace or Cloth modifier) does not follow the bones.
  */
 
-import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
+import type { BlenderActionClip, BlenderSceneMovie } from '@volter/blender-engine/browser/rna';
 import type { BlenderArmature } from '@volter/blender-engine/browser/three/blender-runtime-armature';
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import { editorHost, type StageTransportHandle } from '@volter/sdk/host';
 import { blenderRnaSet } from '../host/blender-runtime-host';
 import { actionLayer, nlaLayers, type PoseLayer } from './blender-pose';
 import { MixerPose, mixerClip, poseDivergence, type MixerClip } from './blender-mixer-pose';
+import { playMovie, type PlayMovie } from './blender-play-movie';
+import { invalidateStages } from '@volter/sdk/kit/stage-invalidation';
 
 /** How the director reads the engine: the Timeline's subject (its keys, the scene's range) and
  *  one action baked for one armature. */
@@ -53,6 +55,9 @@ export interface SkinReader {
   /** The scene's clock and range, and `armature`'s action when there is one (null: the scene alone). */
   clip(armature: string | null): Promise<BlenderActionClip | null>;
   bake(armature: string, action: string): Promise<BlenderActionClip | null>;
+  /** The scene's movie: every animated object and camera sampled at every scene frame, and the
+   *  markers' camera cuts (`rna_scene_movie`, as a game's cutscene reads it). */
+  movie?(): Promise<BlenderSceneMovie | null>;
 }
 
 /** An armature's layers at a scene frame: its NLA, then its active action over them. */
@@ -97,6 +102,11 @@ export class BlenderSkinDirector {
   /** The presented view whose skeletons are posed (`sync`). */
   #view: BlenderRuntimeView | null = null;
   #reader: SkinReader | null = null;
+  /** THE SCENE'S MOVIE on the document's view (`docs/SCENE-ANIMATION.md`, step 2): its objects and
+   *  cameras posed at every Timeline frame beside the armatures, and its camera cuts. */
+  #movie: PlayMovie | null = null;
+  #movieKey: string | null = null;
+  #moviePosed: number | null = null;
   /** The Timeline's subject: the armature its keys and header describe, and what its header was
    *  read for. Read again only when that changes. */
   #armature: string | null = null;
@@ -171,6 +181,10 @@ export class BlenderSkinDirector {
      *  They agree after a pause or a scrub-end, and they are deliberately
      *  allowed to differ in between. */
     blenderFrame: number | null;
+    /** The scene's movie on the Timeline: how many objects it moves, the camera it cuts to now, the
+     *  frame it last posed (null: posed by Blender, standing at its own frame), and the camera the
+     *  camera view looks through. */
+    movie: { objects: number; camera: string | null; posed: number | null; viewCamera: string | null } | null;
   } {
     const clip = this.#clip;
     return {
@@ -191,6 +205,7 @@ export class BlenderSkinDirector {
       warnings: this.#warnings,
       engineCalls: this.#engineCalls,
       blenderFrame: clip?.frameCurrent ?? null,
+      movie: this.#movie ? { objects: this.#movie.objects.length, camera: this.#moviePosed === null ? null : this.#movie.cameraAt(this.#moviePosed), posed: this.#moviePosed, viewCamera: this.#view?.cameraViewCamera() ?? null } : null,
     };
   }
 
@@ -271,6 +286,15 @@ export class BlenderSkinDirector {
         if (this.#transport && clip.fps > 0) this.#transport.seek(clip.frameCurrent / clip.fps);
       }
     }
+    // THE MOVIE IS READ AGAIN WHEN AN ACTION OR THE SCENE'S CLOCK MOVED (a key, a marker, the range)
+    const movieKey = JSON.stringify([facts.actions, facts.clock, this.#clip?.frameStart, this.#clip?.frameEnd]);
+    if (read.movie && movieKey !== this.#movieKey) {
+      this.#movieKey = movieKey;
+      this.#engineCalls++;
+      const data = await read.movie();
+      this.#movie = data && data.objects.length ? playMovie(view, data) : null;
+      for (const warning of this.#movie?.warnings ?? []) this.#say(`movie:${warning}`, warning);
+    }
     this.#pose();
     this.#publish();
   }
@@ -314,6 +338,19 @@ export class BlenderSkinDirector {
     const playing = this.#transport?.snapshot().playbackState === 'playing';
     const warnings: string[] = this.#clip?.reason ? [this.#clip.reason] : [];
     const world = { object: (name: string) => view.objectForBlenderName(name) };
+    // OBJECTS AND CAMERAS FIRST (an armature may ride on one), then the cut: the camera view looks
+    // through the camera Blender's playback shows at this frame
+    // (standing still at Blender's own frame the picture is Blender's, as for the armatures: an object
+    // moved by hand and not keyed stays where it was put until the frame changes, as in Blender)
+    if (this.#movie) {
+      if (!(atBlender && !playing)) { this.#movie.pose(frame); this.#moviePosed = frame; } else this.#moviePosed = null;
+      // THE CUT ALWAYS FOLLOWS THE MARKERS, at Blender's own frame too: Blender switches `scene.camera`
+      // at bound markers as it plays, which a frame written back to it does not do
+      const cut = this.#movie.cameraAt(frame);
+      view.setPlaybackCamera(cut, cut === null ? null : this.#movie.cameraData(cut));
+      // (a scrub that moved only objects and cameras asks the stage for the frame it now shows)
+      invalidateStages();
+    } else { view.setPlaybackCamera(null); this.#moviePosed = null; }
     for (const [name, pose] of this.#poses) {
       const armature = facts.armatures[name];
       if (!armature) continue;

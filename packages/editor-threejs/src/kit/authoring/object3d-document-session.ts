@@ -734,9 +734,12 @@ export class Object3DDocumentSession {
     const pose = through.locked
       ? `${free.position.toArray().join(',')}|${free.quaternion.toArray().join(',')}`
       : '';
-    const key = `${through.camera}|${region.width}|${region.height}|${through.zoom}|${through.offset.join(',')}|${pose}`;
+    // THE SCENE'S CAMERA AS IT IS NOW, as Blender's camera view looks through `scene.camera`, which
+    // the Timeline's markers switch as the film plays; a LOCKED view keeps the camera it moves
+    const camera = through.locked ? through.camera : (source.camera() ?? through.camera);
+    const key = `${camera}|${region.width}|${region.height}|${through.zoom}|${through.offset.join(',')}|${pose}`;
     if (this.viewMemo?.key === key) return this.viewMemo.view;
-    const seen = source.view(through.camera, region, through.zoom, through.offset);
+    const seen = source.view(camera, region, through.zoom, through.offset);
     const view =
       seen && through.locked
         ? {

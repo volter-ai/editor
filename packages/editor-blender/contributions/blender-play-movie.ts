@@ -58,6 +58,10 @@ export interface PlayMovie {
   /** Look through a Blender camera as it stands at the last posed frame: its world pose and its
    *  projection, written into `camera`; false when the file has no such camera. */
   look(camera: THREE.Camera, name: string): boolean;
+  /** A camera as it stands at the last posed frame, in the shape of the frame's camera data (its
+   *  world matrix in Blender's space, by rows, and its sampled projection): what the editor's
+   *  camera view draws through while the Timeline plays. Null when the movie does not move it. */
+  cameraData(name: string): ({ name: string; type: string; sensor_fit: string; matrix: [number, number, number, number][] } & CameraProps) | null;
   /** What the movie does in Blender that a game does not play, each named once. */
   readonly warnings: readonly string[];
 }
@@ -285,6 +289,16 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
         if (!first || marker.frame < first.frame) first = marker;
       }
       return (best ?? first)?.camera ?? data.scene.camera;
+    },
+    cameraData(name) {
+      const entry = byName.get(name);
+      if (!entry?.data.camera) return null;
+      view.root.updateMatrixWorld(true);
+      entry.object.updateWorldMatrix(true, false);
+      const e = view.root.matrixWorld.clone().invert().multiply(entry.object.matrixWorld).elements;
+      const matrix = [0, 1, 2, 3].map((r) => [e[r]!, e[4 + r]!, e[8 + r]!, e[12 + r]!] as [number, number, number, number]);
+      const own = entry.data.camera;
+      return { name, type: own.type, sensor_fit: own.sensor_fit, matrix, ...projectionOf(entry) };
     },
     look(camera, name) {
       const entry = byName.get(name);
