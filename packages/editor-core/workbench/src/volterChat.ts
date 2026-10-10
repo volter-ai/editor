@@ -8,16 +8,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { URI } from '../../../../base/common/uri.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IAgentHostEnablementService } from '../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { ChatViewPaneTarget, IChatWidgetService } from '../../chat/browser/chat.js';
+import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
 import { IHarnessChatNavigationService } from './volterChatNavigation.js';
 
 // The native permissions picker supports provider-defined permission groups,
@@ -27,6 +31,40 @@ MenuRegistry.appendMenuItem(MenuId.ChatInputSecondary, {
 	command: { id: 'workbench.action.chat.openPermissionPicker', title: localize('runtimePermissions', 'Set Permissions') },
 	group: 'navigation', order: 1,
 	when: ContextKeyExpr.equals('chatSessionType', 'supercode'),
+});
+
+// Native Send requires valid session options. Before an agent/model is chosen,
+// that precondition prevents Enter from reaching the provider at all. Explain
+// this exact refusal while leaving the input and native submit action intact.
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'volter.chat.explainUnavailableSend',
+			title: localize2('unavailableHarnessSend', 'Explain Why Chat Is Not Ready to Send'),
+			f1: false,
+			precondition: ContextKeyExpr.and(
+				ContextKeyExpr.equals('chatSessionType', 'supercode'),
+				ChatContextKeys.inputHasSendableContent,
+				ChatContextKeys.chatSessionOptionsValid.negate(),
+				ChatContextKeys.requestInProgress.negate(),
+			),
+			keybinding: {
+				primary: KeyCode.Enter,
+				weight: KeybindingWeight.EditorContrib + 1,
+				when: ContextKeyExpr.and(ChatContextKeys.inChatInput, ChatContextKeys.withinEditSessionDiff.negate()),
+			},
+		});
+	}
+	async run(accessor: ServicesAccessor): Promise<void> {
+		let reason: string | undefined;
+		try {
+			reason = await accessor.get(ICommandService).executeCommand<string | undefined>('supercode.frontend.sendRefusal');
+		} catch {
+			// Older frontends have no readiness command; native options still say
+			// this input cannot be sent. They receive the same visible explanation.
+		}
+		accessor.get(INotificationService).info(reason || localize('chooseHarnessBeforeSend', 'Choose your coding agent and an available model before sending. Your draft is saved.'));
+	}
 });
 
 // The pinned extension API can publish sessions but cannot reveal a specific
