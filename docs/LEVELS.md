@@ -49,9 +49,9 @@ cooked level. This design generalises it:
 - **One dump per level** in `.volter/levels/<level>/` (`frame.json`, `clips.json`, `movie.json`,
   plus the scene bake of `docs/SCENE-ANIMATION.md` once it lands), keyed by the file's content hash,
   so a level is re-cooked only when its file changed.
-- **Cooking happens in the editor's Blender**, outside Play: when a level file is saved, or
-  on demand (`cyclotron levels cook`). A level other than the open document is read without
-  disturbing the person's document. How is decided by an experiment (see "To settle first").
+- **Cooking happens in the editor's Blender**, outside Play: whenever a level is open (on open
+  and on save), and for a stale level by opening, cooking and returning (see "How a level is
+  cooked").
 
 ### 3. The game loads levels by name
 
@@ -86,26 +86,37 @@ the document being edited.
 Build Settings and Unreal's maps-to-cook list do), copies each dump under `data/levels/`, and the web
 player loads them by name.
 
-## To settle first
+## How a level is cooked (settled by experiment)
 
-1. **Reading another level without disturbing the open document.** Two candidates:
-   - **(a) A temporary link:** link the level file's scene into the session
-     (`bpy.data.libraries.load(..., link=True)`), export its frame and bakes, then remove the link.
-     The person's file must never be saved with it, and the session's revision tracking must not
-     mark the document changed.
-   - **(b) Open, cook, return:** the session opens the level file, cooks it, and reopens the
-     document. This is simple and certain, but slow (opening `mission.blend` takes seconds) and visible.
+A level other than the open document cannot be read in place. Measured 2026-10-09 from
+`helldiver.blend` against `film-intro.blend`:
 
-   Measure (a) on `film-intro.blend` from `mission.blend`. If it holds (the frame is complete and
-   the document is unchanged and unsaved), it is the cook; otherwise (b), run only when a file
-   changed.
-2. **Frame size.** `mission.blend`'s full frame is several megabytes. Fetching and building one
-   during Play should be measured, to set how much preloading the game needs.
+- Linking the other file's scene works (`bpy.data.libraries.load(..., link=True)`), and removing
+  the library afterwards leaves the session as it was.
+- But the export door runs only inside a render, on the RENDER depsgraph ("render export requires
+  the render engine's RENDER depsgraph"). A scene not shown in a window has no viewport depsgraph
+  either (`view_layer.depsgraph` is None).
+- Rendering the linked scene through the three.js engine would need its render engine set to it. A
+  linked scene is read-only, and making it writable means an override inside the person's file.
+
+So a level is cooked in one of two ways:
+
+1. **While it is open (free).** Opening or saving a level in the editor writes its dump from the
+   frame the editor already holds, as the web export's dump step does today. Editing a level keeps
+   its cook current.
+2. **Open, cook, return (for a stale level).** When the game needs a level whose file changed since
+   its cook, the session opens that file, cooks it and reopens the document. The editor says so
+   while it runs (it takes seconds on a large file). This happens only for changed files, and
+   `cyclotron levels cook` does it for every level up front.
+
+Still to measure: a full frame's size and build time when loaded during Play, which sets how much
+preloading the game needs (`mission.blend`'s frame is several megabytes).
 
 ## Order of work
 
-1. The experiment above.
-2. Cooked levels: the dump per level, keyed by file hash; `cyclotron levels cook`.
+1. Cooked levels: the dump per level, written while a level is open and keyed by file hash;
+   open-cook-return for stale levels; `cyclotron levels cook`.
+2. Measure a full frame's load and build time during Play.
 3. `play.load` (replace), `play.level`, `onLevel`, in the editor's Play.
 4. Preload.
 5. Export: every reachable level cooked and bundled; the web player loads by name.
