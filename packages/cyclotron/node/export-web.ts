@@ -108,6 +108,8 @@ import { bootWebPlayer } from '@volter/editor-blender/web-export/web-player.ts';
 import manifest from './${WEB_EXPORT_MANIFEST_FILE}';
 import * as script from ${JSON.stringify(specifier(buildDir, join(project, script)))};
 ${imports.join('\n')}
+// (the game's script runs: the page's own loading line gives way to the game's loader)
+document.getElementById('boot')?.remove();
 
 const roots = [
 ${table.join('\n')}
@@ -178,6 +180,37 @@ function pageSource(title: string): string {
   </style>
 </head>
 <body>
+  <!-- THE PAGE SAYS WHAT HAPPENS BEFORE THE GAME CAN (playtest round 25: a tester saw only black for
+       ten minutes, the game's script never ran, and nothing said why): a line that is there before any
+       script, every error written on screen with the browser's version, WebGL2 checked, and after a minute
+       still loading, what to do. The game's script removes the line when it starts. -->
+  <div id="boot" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#cfd6dc;font:15px/1.5 system-ui,sans-serif;text-align:center;padding:24px;z-index:10">
+    <div id="boot-line">Loading the game…</div>
+    <pre id="boot-said" style="color:#ff8a80;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;max-width:90vw"></pre>
+  </div>
+  <script>
+    (function () {
+      var said = function (text) {
+        var pre = document.getElementById('boot-said');
+        if (!pre) { pre = document.createElement('pre'); pre.style.cssText = 'position:fixed;left:0;right:0;bottom:0;margin:0;padding:12px;color:#ff8a80;background:#000c;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;z-index:100'; document.body.appendChild(pre); }
+        pre.textContent += text + '\\n';
+      };
+      var browser = navigator.userAgent;
+      window.addEventListener('error', function (event) {
+        said('Error: ' + (event.message || (event.error && event.error.message) || 'a file could not load') + (event.filename ? ' (' + event.filename + ':' + event.lineno + ')' : '') + '\\nBrowser: ' + browser);
+      }, true);
+      window.addEventListener('unhandledrejection', function (event) {
+        var why = event.reason; said('Error: ' + ((why && (why.stack || why.message)) || String(why)) + '\\nBrowser: ' + browser);
+      });
+      try {
+        if (!document.createElement('canvas').getContext('webgl2')) said('This browser cannot draw WebGL2, which the game needs. Turn on hardware acceleration (chrome://settings/system) or try another browser.\\nBrowser: ' + browser);
+      } catch (e) { said('WebGL2 could not be checked: ' + e + '\\nBrowser: ' + browser); }
+      setTimeout(function () {
+        var line = document.getElementById('boot-line');
+        if (line) line.textContent = 'Still loading after a minute. If nothing moves, press F12, open Console and read out the red lines. Browser: ' + browser;
+      }, 60000);
+    })();
+  </script>
   <div id="game"></div>
   <script type="module" src="./main.ts"></script>
 </body>
