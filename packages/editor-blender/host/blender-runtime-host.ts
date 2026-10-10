@@ -576,8 +576,13 @@ async function movieBegin(width: number, height: number, fps: number): Promise<{
   // (VP9 and VP8 want even sides)
   const w = Math.max(2, Math.round(width / 2) * 2), h = Math.max(2, Math.round(height / 2) * 2);
   const base = { width: w, height: h, framerate: fps, bitrate: Math.round(w * h * fps * 0.12) };
-  const vp9 = await VideoEncoder.isConfigSupported({ ...base, codec: 'vp09.00.10.08' }).catch(() => ({ supported: false }));
-  const codec = vp9.supported ? 'vp09.00.10.08' : 'vp8';
+  // THE LEVEL FITS THE PICTURE: level 1.0 (`vp09.00.10.08`) is for tiny video, and Chrome's player
+  // refused a 1280x720 film encoded under it (PIPELINE_ERROR_DECODE on the first frame; ffmpeg read it)
+  const pixels = w * h;
+  const level = pixels <= 1280 * 720 ? '31' : pixels <= 1920 * 1080 ? '41' : '51';
+  const vp9Codec = `vp09.00.${level}.08`;
+  const vp9 = await VideoEncoder.isConfigSupported({ ...base, codec: vp9Codec }).catch(() => ({ supported: false }));
+  const codec = vp9.supported ? vp9Codec : 'vp8';
   const frames: WebmFrame[] = [];
   const state = { encoder: null as unknown as VideoEncoder, frames, width: w, height: h, fps, codec: (vp9.supported ? 'V_VP9' : 'V_VP8') as 'V_VP8' | 'V_VP9', photographs: [] as string[], count: 0, error: null as string | null };
   state.encoder = new VideoEncoder({
