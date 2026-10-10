@@ -99,11 +99,91 @@ export interface WebPlayer {
 const MAX_FRAME_SECONDS = 0.25;
 const MAX_PIXEL_RATIO = 2;
 
-async function fetchBytes(url: string, what: string): Promise<ArrayBuffer> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`The game's ${what} could not be loaded (${response.status} ${response.statusText}): ${url}`);
-  return response.arrayBuffer();
+/** A download that brings no byte for this long is abandoned and asked for again. */
+const STALL_SECONDS = 20;
+const FETCH_TRIES = 3;
+
+/** The bytes the page's downloads have brought so far, for its loading line. */
+class Downloads {
+  private readonly counts = new Map<number, number>();
+  private next = 0;
+  /** A counter for one download; `set` it to the bytes read so far. */
+  track(): { set(bytes: number): void; done(): void } {
+    const id = this.next++;
+    this.counts.set(id, 0);
+    return { set: (bytes) => { this.counts.set(id, bytes); }, done: () => { this.counts.delete(id); } };
+  }
+  /** Megabytes in flight, or null when nothing is downloading. */
+  megabytes(): number | null {
+    if (this.counts.size === 0) return null;
+    let bytes = 0;
+    for (const n of this.counts.values()) bytes += n;
+    return Math.round(bytes / 1e6);
+  }
 }
+
+class FetchRefused extends Error {}
+
+/**
+ * One of the game's files, read with its progress: a download that brings no byte for
+ * STALL_SECONDS is abandoned and asked for again past the browser's cache (a fresh address, not
+ * stored). A stalled response is otherwise never given up, and a cached one can hold every later
+ * request for the same file behind it, reloads included (playtest round 29: E at the bridge's war
+ * table left the game on "…", and every load in that window after it on "Loading…"). A refusal
+ * (404, 500) is said at once; `optional` files answer null to one.
+ */
+async function fetchBytes(url: string, what: string, downloads: Downloads, optional?: false): Promise<ArrayBuffer>;
+async function fetchBytes(url: string, what: string, downloads: Downloads, optional: true): Promise<ArrayBuffer | null>;
+async function fetchBytes(url: string, what: string, downloads: Downloads, optional = false): Promise<ArrayBuffer | null> {
+  let last: unknown = null;
+  for (let attempt = 0; attempt < FETCH_TRIES; attempt++) {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arm = (): void => {
+      clearTimeout(timer);
+      timer = setTimeout(() => controller.abort(new Error(`no data for ${STALL_SECONDS} s`)), STALL_SECONDS * 1000);
+    };
+    const count = downloads.track();
+    try {
+      arm();
+      const response = attempt === 0
+        ? await fetch(url, { signal: controller.signal })
+        : await fetch(`${url}${url.includes('?') ? '&' : '?'}retry=${attempt}`, { signal: controller.signal, cache: 'no-store' });
+      if (!response.ok) {
+        if (optional) return null;
+        throw new FetchRefused(`The game's ${what} could not be loaded (${response.status} ${response.statusText}): ${url}`);
+      }
+      if (!response.body) return await response.arrayBuffer();
+      const reader = response.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let size = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        arm();
+        chunks.push(value);
+        size += value.byteLength;
+        count.set(size);
+      }
+      const bytes = new Uint8Array(size);
+      let at = 0;
+      for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.byteLength; }
+      return bytes.buffer;
+    } catch (error) {
+      if (error instanceof FetchRefused) throw error;
+      last = controller.signal.aborted ? controller.signal.reason : error;
+      // biome-ignore lint/suspicious/noConsole: the page's console is where its warnings go.
+      console.warn(`The game's ${what} stopped downloading (${last instanceof Error ? last.message : String(last)}); ${attempt + 1 < FETCH_TRIES ? 'asking again' : 'giving up'}: ${url}`);
+    } finally {
+      clearTimeout(timer);
+      count.done();
+    }
+  }
+  if (optional) return null;
+  throw new Error(`The game's ${what} stopped downloading ${FETCH_TRIES} times (${last instanceof Error ? last.message : String(last)}): ${url}. Reload the page; if it stops again, open the game in a new window.`);
+}
+
+const json = <T>(bytes: ArrayBuffer): T => JSON.parse(new TextDecoder().decode(bytes)) as T;
 
 function element(tag: string, style: Partial<CSSStyleDeclaration>, parent: HTMLElement): HTMLElement {
   const made = document.createElement(tag);
@@ -178,13 +258,23 @@ export async function bootWebPlayer(options: WebPlayerOptions): Promise<WebPlaye
   const view = new BlenderRuntimeView();
   scene.add(view.root);
 
+  // THE DOWNLOADS, counted on the loading line as they come (a line that stops counting is a
+  // download that stalled, and is asked for again: `fetchBytes`)
+  const downloads = new Downloads();
+  const counting = (): (() => void) => {
+    const tick = (): void => { const mb = downloads.megabytes(); say(mb ? `Loading… ${mb} MB` : 'Loading…'); };
+    tick();
+    const handle = setInterval(tick, 250);
+    return () => clearInterval(handle);
+  };
+  const stopCounting = counting();
   const [frameBytes, clips, movie] = await Promise.all([
-    fetchBytes(options.frameUrl, 'model'),
-    fetchBytes(options.clipsUrl, 'animation').then((bytes) => JSON.parse(new TextDecoder().decode(bytes)) as WebExportClips),
+    fetchBytes(options.frameUrl, 'model', downloads),
+    fetchBytes(options.clipsUrl, 'animation', downloads).then((bytes) => json<WebExportClips>(bytes)),
     options.movieUrl
-      ? fetch(options.movieUrl).then((r) => (r.ok ? r.json() as Promise<BlenderSceneMovie | null> : null)).catch(() => null)
+      ? fetchBytes(options.movieUrl, 'movie', downloads, true).then((bytes) => (bytes ? json<BlenderSceneMovie | null>(bytes) : null)).catch(() => null)
       : Promise.resolve(null),
-  ]);
+  ]).finally(stopCounting);
   say('Building the scene…');
   view.applyFrame(decodeFrameFile(frameBytes));
   const camera = sceneCamera(view, manifest.camera, aspect ?? (canvas.clientWidth / Math.max(1, canvas.clientHeight)));
@@ -246,9 +336,10 @@ export async function bootWebPlayer(options: WebPlayerOptions): Promise<WebPlaye
     let cook = cooks.get(level);
     if (!cook) {
       cook = Promise.all([
-        fetchBytes(levels.url(level, WEB_EXPORT_FRAME_FILE), `level ${level}`),
-        fetchBytes(levels.url(level, WEB_EXPORT_CLIPS_FILE), `level ${level}'s animation`).then((bytes) => JSON.parse(new TextDecoder().decode(bytes)) as WebExportClips),
-        fetch(levels.url(level, WEB_EXPORT_MOVIE_FILE)).then((r) => (r.ok ? r.json() as Promise<BlenderSceneMovie | null> : null)).catch(() => null),
+        fetchBytes(levels.url(level, WEB_EXPORT_FRAME_FILE), `level ${level}`, downloads),
+        fetchBytes(levels.url(level, WEB_EXPORT_CLIPS_FILE), `level ${level}'s animation`, downloads).then((bytes) => json<WebExportClips>(bytes)),
+        fetchBytes(levels.url(level, WEB_EXPORT_MOVIE_FILE), `level ${level}'s movie`, downloads, true)
+          .then((bytes) => (bytes ? json<BlenderSceneMovie | null>(bytes) : null)).catch(() => null),
       ]).then(([bytes, levelClips, levelMovie]) => ({ frame: decodeFrameFile(bytes) as { session: string }, clips: levelClips, movie: levelMovie }));
       cooks.set(level, cook);
       cook.catch(() => { if (cooks.get(level) === cook) cooks.delete(level); });
@@ -256,8 +347,33 @@ export async function bootWebPlayer(options: WebPlayerOptions): Promise<WebPlaye
     return cook;
   };
   const preloadLevel = async (level: string): Promise<void> => { await readCook(level); };
+  // A level still downloading when the game asks for it shows its count over the stage (one read
+  // ahead by `play.preload` is usually there already, and shows nothing); one that cannot be had
+  // says why for a while, and the script's own catch decides what next (the bridge lets E try again)
+  const waitForCook = async (level: string) => {
+    const reading = readCook(level);
+    const counter: { stop: (() => void) | null } = { stop: null };
+    const shown = setTimeout(() => { status.style.display = 'flex'; counter.stop = counting(); }, 400);
+    let erred = false;
+    try {
+      return await reading;
+    } catch (error) {
+      erred = true;
+      counter.stop?.();
+      counter.stop = null;
+      say(error instanceof Error ? error.message : String(error));
+      status.style.display = 'flex';
+      status.style.color = '#ff8a80';
+      setTimeout(() => { if (!failed) { status.style.display = 'none'; status.style.color = '#e6e6e6'; } }, 12000);
+      throw error;
+    } finally {
+      clearTimeout(shown);
+      counter.stop?.();
+      if (!failed && !erred) status.style.display = 'none';
+    }
+  };
   const loadLevel = async (level: string) => {
-    const cook = await readCook(level);
+    const cook = await waitForCook(level);
     cooks.delete(level);
     cook.frame.session = `level:${level}:${Date.now()}`;
     animation?.dispose();

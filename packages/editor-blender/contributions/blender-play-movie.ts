@@ -139,6 +139,12 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mix
     const sampled = entry.sampled;
     const tracks: THREE.KeyframeTrack[] = [];
     if (sampled) {
+      // THE MOVIE MOVES IT BY ITS PARTS, as a script does (`play.find`): the presenter states each
+      // object's matrix outright (`matrixAutoUpdate = false`), so the mixer's position, rotation and
+      // scale reached no drawn matrix, and every object a cutscene moves was drawn where it stood
+      // (playtest round 29's exported film: the tap ran on, the sludge never rose, the destroyer and
+      // the Heckpods never came; cameras moved, posed from the movie directly)
+      object.matrixAutoUpdate = true;
       const column = (c: BlenderClipColumn, stride: number): [Float32Array, Float32Array] => {
         const values = float32Of(c);
         return [values.length === stride ? new Float32Array([0]) : times.slice(0, values.length / stride), values];

@@ -100,6 +100,28 @@ async function loadFactory(glueUrl: string): Promise<BlenderModuleFactory> {
   return factory;
 }
 
+/**
+ * A BLENDER THREAD'S CRASH, WITH ITS STACK. Blender runs on pthreads (its main loop included), and a
+ * trap in one ("memory access out of bounds", `Aborted()`: volter-ai/editor#404) crosses to this
+ * worker as an ErrorEvent, which carries the message and the glue's line but not the error, so the
+ * wasm frames that say where it happened were lost. Each pthread therefore starts from this entry: it
+ * listens for its own uncaught error (fired in the thread before it crosses, and not cancelled, so
+ * the glue's handling is unchanged) and sends the stack through the glue's own handler call (`cmd`
+ * 9, `callHandler`: `Module.printErr`), so it is Blender's output, kept with its last lines when the
+ * session dies. The frames are wasm function indices (the bundle has no name section); a build of
+ * the same source with a symbol map names them.
+ */
+function pthreadEntry(glueUrl: string): string {
+  const source = `self.addEventListener('error', (event) => {
+  const error = event.error;
+  const stack = error && error.stack ? String(error.stack) : String(event.message) + ' at ' + event.filename + ':' + event.lineno + ':' + event.colno;
+  try { postMessage({ cmd: 9, handler: 'printErr', args: ['Blender thread crashed: ' + stack] }); } catch (_) {}
+});
+importScripts(${JSON.stringify(new URL(glueUrl, self.location.href).href)});
+`;
+  return URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+}
+
 const utf8 = new TextEncoder();
 
 function mkdirp(module: BlenderModule, directory: string): void {
@@ -294,8 +316,9 @@ export async function startEmscriptenBlenderEngine(
       })().catch((error: unknown) => { bootError = error; });
       return {};
     },
-    // The pthreads load the SAME patched glue this worker just evaluated.
-    mainScriptUrlOrBlob: glueUrl,
+    // The pthreads load the SAME patched glue this worker just evaluated, behind a line that sends
+    // a crashing thread's own stack here (`pthreadEntry`).
+    mainScriptUrlOrBlob: pthreadEntry(glueUrl),
     print: (text: string) => say('log', text),
     printErr: (text: string) => say('error', text),
     preRun: [
