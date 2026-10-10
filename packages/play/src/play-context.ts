@@ -18,6 +18,15 @@ export interface ModelPlayContext {
   /** The object a Blender object's name presents as, ready to be moved by `position`,
    *  `quaternion` and `scale`; null when the file has no such object. */
   find(name: string): THREE.Object3D | null;
+  /**
+   * LOAD A LEVEL (`docs/LEVELS.md`): another `.blend` of the project, named for its file
+   * (`play.load('film-intro')`), replaces the scene the game runs in. The script keeps running, and
+   * its own state (a career, a loadout) carries across; objects it found in the old level are gone,
+   * so it finds them again in the new one. Resolves once the level is built and drawn; its
+   * animation, cutscenes and markers are then the new level's. A level is played from its cook
+   * (`cyclotron levels cook <level>`); one never cooked is refused, a stale one is said in the log.
+   */
+  load(level: string): Promise<void>;
   /** The camera the stage draws with. Navigation re-poses it before each call,
    * so a script states the whole pose every frame. The tool blends that pose
    * during entry and holds keys empty until the camera arrives. */
@@ -345,6 +354,8 @@ export interface ModelPlayContextHost {
   readonly materials: Pick<MaterialOverrides, 'tint' | 'setOpacity'>;
   /** The document's animation bound to `root`; absent, rigged objects stand in their exported pose. */
   readonly animation: DocumentPlayAnimation | undefined;
+  /** Load a level (`play.load`); absent, this runner cannot. */
+  readonly load?: (level: string) => Promise<void>;
   /** One entry in the run's log: the runner's own (`play`) or the script's (`script`). */
   append(source: 'play' | 'script', kind: string, facts?: Record<string, unknown>): void;
   /** What each NLA track was last set to, kept for the run so the log says a change once. */
@@ -355,7 +366,8 @@ export interface ModelPlayContextHost {
 /** One script's context: its log, tint, opacity and bot do nothing once that script is gone
  *  (replaced, failed, or the run stopped), so a stale timer cannot reach a later one. */
 export function modelPlayContext(host: ModelPlayContextHost, alive: ModelPlayScriptLife): ModelPlayContext {
-  const { root, camera, keys, materials, animation, append, tracks, movies } = host;
+  // (the animation is read when used: a level's load replaces it)
+  const { root, camera, keys, materials, append, tracks, movies } = host;
   // An unknown name is the script's typo, not a reason to stop its game: said once per name, per script.
   const objectOf = (script: ModelPlayScriptLife, target: THREE.Object3D | string, call: 'tint' | 'setOpacity'): THREE.Object3D | null => {
     if (typeof target !== 'string') return target;
@@ -378,11 +390,17 @@ export function modelPlayContext(host: ModelPlayContextHost, alive: ModelPlayScr
     if (!alive.value) return { ok: false as const };
     const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
     if (!target) return { ok: unknown('the model has no such object') };
+    const animation = host.animation;
     if (!animation) return { ok: unknown('this document lends no animation') };
     return { ok: true as const, target, animation, unknown };
   };
   return {
     root,
+    load(level) {
+      if (!alive.value) return Promise.resolve();
+      if (!host.load) return Promise.reject(new Error('This game cannot load levels here: the document lends no levels (play.load).'));
+      return host.load(level);
+    },
     find(name) {
       const object = root.getObjectByName(name) ?? null;
       // The presenter states each object's matrix outright; a script moves it by its parts.
@@ -457,7 +475,7 @@ export function modelPlayContext(host: ModelPlayContextHost, alive: ModelPlayScr
     },
     actions(object) {
       const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
-      return target && animation ? animation.clips(target) : [];
+      return target && host.animation ? host.animation.clips(target) : [];
     },
     markers: () => movies.markers(),
     cutscene: (span, options = {}) => movies.cutscene(alive, span, options),

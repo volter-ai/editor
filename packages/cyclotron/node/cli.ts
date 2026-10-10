@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
-import { resolve, dirname } from 'node:path';
+import { existsSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { hasManifest } from '@volter/project/manifest/locate';
@@ -13,6 +14,7 @@ import { addPlay, ADD_PLAY_USAGE } from './add-play';
 import { camera, CAMERA_OPTIONS, CAMERA_USAGE } from './camera';
 import { play, PLAY_USAGE } from './play';
 import { exportWeb, EXPORT_WEB_USAGE } from './export-web';
+import { levels, LEVELS_USAGE } from './levels';
 import { launch, prepareSession, VIEW_BUILD_USAGE, viewBuild, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { capture, CAPTURE_OPTIONS, CAPTURE_USAGE, listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
@@ -77,7 +79,16 @@ try {
   } else if (values.help) {
     console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console [--all] | close    # exit 1 for an unresolved console error; warnings print, exit 0; --all prints every retained entry\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${RENDER_MOVIE_USAGE}    # a film of the Timeline: Blender's render on the three.js engine, encoded to WebM\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)
   cyclotron ${EXPORT_WEB_USAGE}    # the model's game as a static web page (docs/WEB-EXPORT.md)
+  cyclotron ${LEVELS_USAGE}    # the game's levels, and cooking them for play.load (docs/LEVELS.md)
   cyclotron ${HOSTED_USAGE}\n  cyclotron sessions | project | projects\n  cyclotron open <path>\n  cyclotron blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
+  } else if (verb === 'levels') {
+    // A game's levels and their cooks (docs/LEVELS.md): run from inside the project.
+    let project = resolve(process.cwd());
+    while (!existsSync(join(project, 'volter.project.json'))) {
+      if (dirname(project) === project) throw new Error('levels: run it inside a project (no volter.project.json above here).');
+      project = dirname(project);
+    }
+    console.log(JSON.stringify(await levels(project, positionals.slice(1)), null, 2));
   } else if (verb === 'play') {
     console.log(JSON.stringify(await play(positionals.slice(1), values.document, values.for), null, 2));
   } else if (verb === 'chat') {

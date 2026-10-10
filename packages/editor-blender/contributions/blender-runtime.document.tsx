@@ -27,6 +27,10 @@
 // How the `model` stage this document builds behaves (its starting presentation).
 import './blender-properties-context';
 import { liveAnimation, setLiveAnimation } from '../src/play-live';
+import { decodeFrameFile } from '../web-export/frame-codec';
+import { LEVEL_MANIFEST_FILE, levelDir, WEB_EXPORT_CLIPS_FILE, WEB_EXPORT_FRAME_FILE, WEB_EXPORT_MOVIE_FILE, type LevelManifest, type WebExportClips } from '../web-export/web-export-files';
+import { fileHash } from './blender-export.command';
+import type { BlenderSceneMovie } from '@volter/blender-engine/browser/rna';
 import { blenderViewFieldOfView } from '../src/presentation';
 import { readBlenderDisplaySettings } from './blender-display-settings';
 import {
@@ -984,6 +988,48 @@ function BlenderViewportArea({
           returning: () => { if (!stopped) playReturnRef.current?.(); },
           sourcePath: blend,
           root: view.root,
+          // A LEVEL (`play.load`, docs/LEVELS.md), from its cook: its frame replaces the copy's scene
+          // in this same view (the stage, the rendered draw and `root` stay), its clips and movie
+          // become the run's animation
+          loadLevel: async (level) => {
+            const files = editorHost().files;
+            const dir = levelDir(level);
+            if (!(await files.exists(`${dir}/${LEVEL_MANIFEST_FILE}`)))
+              throw new Error(`There is no cooked level "${level}": cook it with \`cyclotron levels cook ${level}\`.`);
+            const manifest = JSON.parse(await files.read(`${dir}/${LEVEL_MANIFEST_FILE}`)) as LevelManifest;
+            if ((await fileHash(manifest.blend).catch(() => null)) !== manifest.hash)
+              editorHost().console.warn(`Level "${level}" was cooked before ${manifest.blend} last changed, and plays as it was then; \`cyclotron levels cook ${level}\` cooks it again.`, 'model-play');
+            const [frameBytes, clipsText, movieText] = await Promise.all([
+              files.readBytes(`${dir}/${WEB_EXPORT_FRAME_FILE}`),
+              files.read(`${dir}/${WEB_EXPORT_CLIPS_FILE}`),
+              files.read(`${dir}/${WEB_EXPORT_MOVIE_FILE}`).catch(() => 'null'),
+            ]);
+            if (stopped) throw new Error('Play stopped while the level was loading.');
+            const clips = JSON.parse(clipsText) as WebExportClips;
+            const movie = JSON.parse(movieText) as BlenderSceneMovie | null;
+            const frame = decodeFrameFile(frameBytes) as { session: string };
+            // ITS OWN SESSION: the view takes it as a new scene, never as an older frame of this one
+            frame.session = `level:${level}:${Date.now()}`;
+            const previous = animation;
+            if (liveAnimation() === previous) setLiveAnimation(null);
+            previous?.dispose();
+            animation = null;
+            view.applyFrame(frame);
+            await view.prepareRendered(stage.rig().drawCamera(), 'render');
+            const next = playAnimation(view, async (armature, action) => {
+              const entry = clips.armatures[armature]?.[action];
+              if (typeof entry === 'number') return clips.clips[entry] ?? null;
+              throw new Error(typeof entry === 'string' ? entry : `${armature} / ${action} was not cooked with level "${level}"`);
+            }, new Map(), { warn: (said) => editorHost().console.warn(said, 'blender-animation'), readMovie: async () => movie });
+            const { failed } = await next.prepare();
+            if (failed.length > 0) editorHost().console.warn(`Level "${level}" started without ${failed.length} clip(s): ${failed.join('; ')}`, 'blender-animation');
+            if (stopped) { next.dispose(); throw new Error('Play stopped while the level was loading.'); }
+            animation = next;
+            setLiveAnimation(next);
+            // the level's own play script, beside its .blend, when it has one
+            const script = manifest.blend.replace(/\.blend$/i, '') + '.play.ts';
+            return { animation: next, script: (await files.exists(script)) ? script : null };
+          },
           camera: () => stage.rig().drawCamera(),
           editingCamera: () => viewportStages().find(one => one.documentId === modelId)?.rig().drawCamera() ?? stage.rig().drawCamera(),
           onFrame: (fn) => stage.onFrame(fn),

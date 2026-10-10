@@ -189,7 +189,8 @@ export function runPlayScript(options: {
   readonly animation?: DocumentPlayAnimation | undefined;
 }): () => void {
   const { blend, root, camera, onFrame } = options;
-  const modulePath = playScriptPath(blend);
+  /** The running script: the document's, until a level brings its own (`play.load`). */
+  let modulePath = playScriptPath(blend);
   // A fresh copy is a fresh run: its log starts empty, its clock at zero. Writes go through
   // this run's handle, which is inert once the run has ended.
   const run = beginModelPlayLog(options.documentId, modulePath);
@@ -220,16 +221,44 @@ export function runPlayScript(options: {
   /** What each NLA track was last set to, so the log says a change once. */
   const tracks = new Map<string, string>();
   /** The run's cutscenes and sequences: the document's movie on the game's clock (`play-movie.ts`). */
+  /** The level's animation: the document's, until a level's load replaces it (`play.load`). */
+  let animation = options.animation;
   const movies = moviePlayer({
-    movie: () => options.animation?.movie ?? null,
+    movie: () => animation?.movie ?? null,
     camera,
     root,
     append: (source, kind, facts) => run.append(source, kind, facts),
     report: (what, error) => report('update', `${modulePath}'s ${what} failed`, error),
   });
+  /** LOAD A LEVEL (`play.load`): the document builds its cook into `root`, and its animation and
+   *  movie replace the old level's. The script keeps running throughout. */
+  let loadingLevel: Promise<void> | null = null;
+  const loadLevel = (level: string): Promise<void> => {
+    if (!options.loadLevel) return Promise.reject(new Error('This document cannot load levels (play.load); update the model document and @volter/play.'));
+    if (loadingLevel) return Promise.reject(new Error(`play.load('${level}') was called while another level is loading.`));
+    const started = performance.now();
+    run.append('play', 'level-loading', { level });
+    movies.end();
+    loadingLevel = options.loadLevel(level).then(async (loaded) => {
+      animation = loaded.animation;
+      tracks.clear();
+      run.append('play', 'level', { level, ms: Math.round(performance.now() - started), animation: loaded.animation !== undefined, script: loaded.script ?? null });
+      // A LEVEL WITH ITS OWN SCRIPT runs it in place of this one, as a scene's scripts do in other
+      // engines; state both share lives in the modules both import
+      if (loaded.script && loaded.script !== modulePath) {
+        modulePath = loaded.script;
+        await start({ reason: 'level', path: loaded.script });
+      }
+    }, (error: unknown) => {
+      run.append('play', 'level-failed', { level, why: error instanceof Error ? error.message : String(error) });
+      throw error;
+    }).finally(() => { loadingLevel = null; });
+    return loadingLevel;
+  };
   const contextFor = (alive: Script): ModelPlayContext => modelPlayContext({
     root, camera, keys, materials, tracks, movies,
-    animation: options.animation,
+    get animation() { return animation; },
+    load: loadLevel,
     append: (source, kind, facts) => run.append(source, kind, facts),
   }, alive);
   // The run this runner belongs to. A Restart moves the document to the next generation, whose
@@ -280,7 +309,7 @@ export function runPlayScript(options: {
     endedAt: () => endedAt,
     surface: () => 'three',
   });
-  let pending: { game: ModelPlayGame; composition: PlayComposition | null } | null = null;
+  let pending: { game: ModelPlayGame; composition: PlayComposition | null; level?: boolean } | null = null;
   // A failed mount/update still owns a dependency graph whose next save retries it.
   let retryEntries: readonly string[] = [];
   const mountLayers = projectPlayLayers();
@@ -340,7 +369,7 @@ export function runPlayScript(options: {
         dispose(next, nextComposition ?? null);
         return;
       }
-      pending = { game: next, composition: nextComposition ?? null };
+      pending = { game: next, composition: nextComposition ?? null, level: reload?.reason === 'level' };
     } catch (error) {
       alive.value = false;
       nextComposition?.dispose();
@@ -441,7 +470,7 @@ export function runPlayScript(options: {
     const stepping = modelPlayClock(options.documentId).paused;
     const tick = (dt: number): void => {
       // The characters' clips move on the game's clock, one update's `dt` at a time.
-      options.animation?.update(dt);
+      animation?.update(dt);
       // A cutscene's frame moves on the same clock, after the clips, so it has the last word.
       movies.advance(dt);
       run.advance(dt);
@@ -462,7 +491,7 @@ export function runPlayScript(options: {
         const offeredStarts = scripts.get(next.game)?.starts ?? null;
         setModelPlayStartsOffered(options.documentId, offeredStarts ? Object.keys(offeredStarts) : []);
         const chosen = modelPlayStart(options.documentId).chosen;
-        if (chosen !== null) {
+        if (chosen !== null && !next.level) {
           const setup = offeredStarts?.[chosen];
           if (!setup) run.append('play', 'start-refused', { start: chosen, offered: offeredStarts ? Object.keys(offeredStarts) : [], why: offeredStarts ? 'the play script offers no start of that name' : 'the play script offers no starts (play.starts)' });
           else {

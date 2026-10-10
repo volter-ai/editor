@@ -30,6 +30,11 @@ export interface DocumentPlayStage {
    *  runner advances on the game's clock. Absent, the document lends no animation and rigged
    *  objects stand in their exported pose. */
   readonly animation?: DocumentPlayAnimation;
+  /** LOAD A LEVEL into `root` (`play.load`, `docs/LEVELS.md`): its cook's frame replaces what `root`
+   *  holds. The answer is the level's animation, which replaces `animation`, and the level's own
+   *  play script when it has one (a level brings its script, as a scene does in other engines),
+   *  which then replaces the running script. Absent, the document cannot load levels. */
+  readonly loadLevel?: (level: string) => Promise<{ readonly animation?: DocumentPlayAnimation; readonly script?: string | null }>;
 }
 export type DocumentPlayAnswer = { ok: true; armature: string } | { ok: false; why: string };
 

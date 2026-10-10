@@ -48,3 +48,28 @@ export interface WebExportClips {
   readonly clips: readonly (BlenderActionClip | null)[];
   readonly armatures: Readonly<Record<string, Readonly<Record<string, number | string>>>>;
 }
+
+/**
+ * A COOKED LEVEL (`docs/LEVELS.md`): the web export's dump, one per level, in `.volter/levels/<level>/`
+ * — the frame, the baked clips and the movie a game builds the level from when it loads it
+ * (`play.load`), with no Blender in the loop. Written when the level is cooked; stale when its
+ * `.blend` no longer hashes to `hash`.
+ */
+export const LEVELS_DIR = '.volter/levels';
+export const LEVEL_MANIFEST_FILE = 'level.json';
+export const levelDir = (level: string): string => `${LEVELS_DIR}/${level}`;
+/** A level's name: its `.blend`'s file name without the extension (`src/models/film-intro.blend`
+ *  is `film-intro`); letters, digits, `-` and `_`. */
+export function levelOf(blend: string): string {
+  return (blend.split('/').pop() ?? blend).replace(/\.blend$/i, '');
+}
+export interface LevelManifest {
+  readonly format: typeof WEB_EXPORT_FORMAT;
+  readonly level: string;
+  /** The level's `.blend`, project-relative, and the SHA-256 of its bytes when it was cooked. */
+  readonly blend: string;
+  readonly hash: string;
+  readonly display: BlenderDisplaySettings | null;
+  readonly camera: string | null;
+  readonly cookedAt: string;
+}

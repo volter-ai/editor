@@ -275,6 +275,16 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
   return !anotherModel || active === binding.documentId;
 }
 
+/** THE `.blend` A MODEL VIEW SHOWS NOW: the runtime's document, once `view` holds that runtime's
+ *  latest present; null between opening a file and its first present (the view still shows the
+ *  last one). */
+export function presentedModelBlend(view: { snapshot(): { readonly session: string; readonly revision: number } | null }): string | null {
+  const latest = runtime?.presented;
+  const shown = view.snapshot();
+  if (!runtime || !latest || !shown || shown.session !== latest.session || shown.revision !== latest.revision) return null;
+  return runtime.document ?? null;
+}
+
 /** A retained photograph must belong to the file and revision still on screen,
  * not a retiring pane or the next worker's first frame. */
 export function modelDocumentOwnsPresentation(

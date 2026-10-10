@@ -19,7 +19,7 @@ import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
 import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { CommandContribution, EditorCommandResult } from '@volter/sdk/commands';
 import { editorHost } from '@volter/sdk/host';
-import { blenderActionClip, blenderSceneMovie } from '../host/blender-runtime-host';
+import { blenderActionClip, blenderSceneMovie, presentedModelBlend } from '../host/blender-runtime-host';
 import { modelDocumentSource, servedModelDocument } from '../src/play-mode';
 import { encodeFrameFile } from '../web-export/frame-codec';
 import {
@@ -28,6 +28,10 @@ import {
   WEB_EXPORT_FORMAT,
   WEB_EXPORT_FRAME_FILE,
   WEB_EXPORT_MANIFEST_FILE,
+  LEVEL_MANIFEST_FILE,
+  levelDir,
+  levelOf,
+  type LevelManifest,
   type WebExportClips,
   type WebExportManifest,
 } from '../web-export/web-export-files';
@@ -98,27 +102,18 @@ async function exportPlay(command: Record<string, unknown>): Promise<EditorComma
   const files = editorHost().files;
   if (!(await files.exists(script))) return { ok: false, error: `${blend} has no play script (${script}); a web export plays a model's game.` };
 
-  const frame = encodeFrameFile(blenderModelView.exportFrame());
-  const { clips, failed } = await bakeClips();
-  let display: WebExportManifest['display'] = null;
-  try { display = await readBlenderDisplaySettings(); }
-  catch (error) { return { ok: false, error: `The scene's display transform cannot be exported: ${message(error)}` }; }
+  const dump = await writePlayDump(WEB_EXPORT_DUMP_DIR);
+  if (!dump.ok) return { ok: false, error: dump.error };
   const manifest: WebExportManifest = {
     format: WEB_EXPORT_FORMAT,
     blend,
     script,
-    display,
+    display: dump.display,
     camera: blenderModelView.cameraViewCamera(),
     resolution: await projectResolution(),
     exportedAt: new Date().toISOString(),
   };
-  // THE MOVIE, for the game's cutscenes and sequences: sampled by Blender once, as Play reads it.
-  const movieText = JSON.stringify(await blenderSceneMovie());
-  const clipsText = JSON.stringify(clips);
   const manifestText = JSON.stringify(manifest, null, 2);
-  await files.write(`${WEB_EXPORT_DUMP_DIR}/${WEB_EXPORT_FRAME_FILE}`, frame);
-  await files.write(`${WEB_EXPORT_DUMP_DIR}/${WEB_EXPORT_CLIPS_FILE}`, clipsText);
-  await files.write(`${WEB_EXPORT_DUMP_DIR}/${WEB_EXPORT_MOVIE_FILE}`, movieText);
   // Written last: its presence says the dump beside it is whole.
   await files.write(`${WEB_EXPORT_DUMP_DIR}/${WEB_EXPORT_MANIFEST_FILE}`, manifestText);
   return {
@@ -128,17 +123,88 @@ async function exportPlay(command: Record<string, unknown>): Promise<EditorComma
       documentId,
       blend,
       script,
-      files: {
-        [WEB_EXPORT_FRAME_FILE]: frame.byteLength,
-        [WEB_EXPORT_CLIPS_FILE]: clipsText.length,
-        [WEB_EXPORT_MOVIE_FILE]: movieText.length,
-        [WEB_EXPORT_MANIFEST_FILE]: manifestText.length,
-      },
-      armatures: Object.keys(clips.armatures).length,
-      actions: Object.keys(blenderModelView.animationFacts().actions).length,
-      bakes: clips.clips.length,
-      failed,
+      files: { ...dump.files, [WEB_EXPORT_MANIFEST_FILE]: manifestText.length },
+      armatures: dump.armatures,
+      actions: dump.actions,
+      bakes: dump.bakes,
+      failed: dump.failed,
     },
+  };
+}
+
+/**
+ * WHAT A GAME PLAYS FROM, written into `dir`: the model's frame, every clip baked and the scene's
+ * movie, as the web export and a cooked level both need them. The caller writes its manifest last.
+ */
+async function writePlayDump(dir: string): Promise<
+  | { ok: true; display: WebExportManifest['display']; files: Record<string, number>; armatures: number; actions: number; bakes: number; failed: string[] }
+  | { ok: false; error: string }> {
+  const files = editorHost().files;
+  const frame = encodeFrameFile(blenderModelView.exportFrame());
+  const { clips, failed } = await bakeClips();
+  let display: WebExportManifest['display'] = null;
+  try { display = await readBlenderDisplaySettings(); }
+  catch (error) { return { ok: false, error: `The scene's display transform cannot be exported: ${message(error)}` }; }
+  // THE MOVIE, for the game's cutscenes and sequences: sampled by Blender once, as Play reads it.
+  const movieText = JSON.stringify(await blenderSceneMovie());
+  const clipsText = JSON.stringify(clips);
+  await files.write(`${dir}/${WEB_EXPORT_FRAME_FILE}`, frame);
+  await files.write(`${dir}/${WEB_EXPORT_CLIPS_FILE}`, clipsText);
+  await files.write(`${dir}/${WEB_EXPORT_MOVIE_FILE}`, movieText);
+  return {
+    ok: true,
+    display,
+    files: { [WEB_EXPORT_FRAME_FILE]: frame.byteLength, [WEB_EXPORT_CLIPS_FILE]: clipsText.length, [WEB_EXPORT_MOVIE_FILE]: movieText.length },
+    armatures: Object.keys(clips.armatures).length,
+    actions: Object.keys(blenderModelView.animationFacts().actions).length,
+    bakes: clips.clips.length,
+    failed,
+  };
+}
+
+/** The SHA-256 of a project file's bytes, in hex. */
+export async function fileHash(path: string): Promise<string> {
+  const bytes = await editorHost().files.readBytes(path);
+  const digest = await crypto.subtle.digest('SHA-256', bytes as BufferSource);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * COOK A LEVEL (`docs/LEVELS.md`): the model on screen, written as a cooked level into
+ * `.volter/levels/<level>/` — what `play.load('<level>')` builds the level from, with no Blender in
+ * the loop — stamped with its `.blend`'s hash, so a later load can tell a stale cook.
+ */
+async function cookLevel(command: Record<string, unknown>): Promise<EditorCommandResult> {
+  const wanted = command['blend'];
+  if (wanted !== undefined && typeof wanted !== 'string')
+    return { ok: false, error: `blender-cook-level's blend is a project-relative .blend path, a string; it was given ${JSON.stringify(wanted)}.` };
+  // WHAT THE VIEW SHOWS NOW, not what was asked to open: just after a switch the view still holds the
+  // last file, and cooking it would write the wrong scene under the new level's name
+  const blend = presentedModelBlend(blenderModelView);
+  if (blend === null || (wanted !== undefined && blend !== wanted))
+    return { ok: false, error: `${wanted ?? 'The model'} has not been presented yet${blend ? ` (the view still shows ${blend})` : ''}: wait for it to show, then cook it.` };
+  const level = levelOf(blend);
+  if (!/^[A-Za-z][\w-]{0,63}$/.test(level)) return { ok: false, error: `"${level}" (from ${blend}) is not a level name: letters, digits, - and _, starting with a letter.` };
+  const dir = levelDir(level);
+  const started = performance.now();
+  const hash = await fileHash(blend);
+  const dump = await writePlayDump(dir);
+  if (!dump.ok) return { ok: false, error: dump.error };
+  const manifest: LevelManifest = {
+    format: WEB_EXPORT_FORMAT,
+    level,
+    blend,
+    hash,
+    display: dump.display,
+    camera: blenderModelView.cameraViewCamera(),
+    cookedAt: new Date().toISOString(),
+  };
+  const manifestText = JSON.stringify(manifest, null, 2);
+  // Written last: its presence says the cook beside it is whole.
+  await editorHost().files.write(`${dir}/${LEVEL_MANIFEST_FILE}`, manifestText);
+  return {
+    ok: true,
+    data: { level, dir, blend, hash, files: { ...dump.files, [LEVEL_MANIFEST_FILE]: manifestText.length }, armatures: dump.armatures, bakes: dump.bakes, failed: dump.failed, ms: Math.round(performance.now() - started) },
   };
 }
 
@@ -148,5 +214,11 @@ export const commands: CommandContribution['commands'] = {
     timeoutMs: 30 * 60_000,
     derivedRefresh: 'none',
     handle: (command) => exportPlay(command as Record<string, unknown>),
+  },
+  // A level's cook bakes every clip as the export does.
+  'blender-cook-level': {
+    timeoutMs: 30 * 60_000,
+    derivedRefresh: 'none',
+    handle: (command) => cookLevel(command as Record<string, unknown>),
   },
 };
