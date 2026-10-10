@@ -2047,13 +2047,13 @@ export class HarnessChatService {
       const configures = harness !== undefined && harness === configured.harness && Boolean(configured.model || configured.effort);
       if (policy === 'yolo') {
         if (!['claude-code', 'codex'].includes(harness ?? '')) throw new Error('Project YOLO is available only for native Claude Code and Codex.');
-        const capabilities = await this.discoveryClient?.runtimeCapabilities?.({ harness: harness!, policy: 'yolo' });
+        const capabilities = await this.discoveryClient?.runtimeCapabilities?.({ ...(params as object), harness: harness!, policy: 'yolo' });
         if (!capabilities || !('yolo_policy' in capabilities) || capabilities.yolo_policy !== true) {
           throw new Error('This runtime service does not advertise project YOLO for configured launches and resumed threads. Update it before starting this chat.');
         }
       }
       if (policy && params && typeof params === 'object') params = { ...params, policy };
-      // Every Claude Code start and resume names its manual mode (`withManualApproval`): "Ask for approval"
+      // A default-policy Claude Code start or resume names its manual mode: "Ask for approval"
       // (t_8ea14bad). Not an attach (`base_url`): a process already running cannot take a new mode.
       const asks = policy !== 'yolo' && harness === 'claude-code' && (params as { base_url?: unknown }).base_url === undefined;
       if (configures || asks) {

@@ -72,6 +72,17 @@ it, the welcome also shows Sign in with Claude, which does the same for Claude C
 reconnects without a reload. Other agents Volter Harness supports (Gemini, Grok and more) can
 be chosen from Chat's agent picker.
 
+For native Codex or Claude Code Chat, set `volter.chat.runtimePolicy` to `yolo`
+in this project's Workspace Settings (the project's `.vscode/settings.json`).
+It applies on the next start or resume, including configured model and inference
+launches. YOLO runs without approval prompts and removes Codex's sandbox; the
+Chat permission picker shows the policy carried by its opened runtime. Set the
+workspace value to `default` to use ordinary Ask/Auto approve choices on the next
+start or resume. A user-wide value does not enable project YOLO. An older runtime
+that cannot advertise YOLO enforcement is refused by name. This source change
+requires the paired [Supercode change](https://github.com/volter-ai/supercode/pull/1549);
+publication and live build-agent qualification remain open.
+
 Other extensions install from the **Extensions** view; Claude Code's official extension is
 `@id:Anthropic.claude-code`. No agent extension is bundled.
 
@@ -180,6 +191,9 @@ configuration. [ARCHITECTURE.md](ARCHITECTURE.md) describes how the pieces fit.
 ## Building from source
 
 With Node.js 24 and npm:
+
+After changing the Zod settings document, run `npm run generate-schema`, then
+`node scripts/workbench/generate-settings.mjs --write`, to derive both settings artifacts.
 
 ```bash
 npm ci
