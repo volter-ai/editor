@@ -551,11 +551,13 @@ export async function blenderExecute(code: string, history = true, label = 'Blen
 
 // ---------------------------------------------------------------- a film, rendered
 
-/** WHERE A RENDER'S TIME GOES, one record per photograph: the frame's transfer (from its first staged
- *  part to its present), building it into the photograph view, and the photograph itself. Read by
- *  `render-movie` beside Blender's own time, so a slow film says which side is slow. */
+/** WHERE A RENDER'S TIME GOES, one record per photograph a render or a film takes: the frame's
+ *  transfer (from its first staged part to its present; none when nothing new was staged), building
+ *  it into the view it is photographed from, and the photograph itself. Read by `render-movie`
+ *  beside Blender's own time, so a slow film says which side is slow. */
 const renderTimings: { stageMs: number; applyMs: number; photoMs: number }[] = [];
-let renderStagedAt: number | null = null;
+/** When the frame being transferred staged its first part, render or viewport; taken at its present. */
+let frameStagedAt: number | null = null;
 
 /** The film being encoded (`blender-movie-*`), one at a time. */
 let movie: {
@@ -1154,6 +1156,7 @@ export function blenderRuntime(): BlenderRuntime {
   const discardStreamedFrame = () => {
     const staged = streamedFrame;
     streamedFrame = null;
+    frameStagedAt = null;
     if (staged) staged.view.stageFrame({ session: staged.session, revision: staged.revision, abort: true });
     discardRenderFrame();
   };
@@ -1202,7 +1205,7 @@ export function blenderRuntime(): BlenderRuntime {
       if (part.evaluation === 'render') {
         if (!renderFrame) {
           if (part.mesh !== undefined || part.image !== undefined) throw new Error('Render resource arrived before its frame');
-          renderStagedAt = performance.now();
+          frameStagedAt = performance.now();
           const detached = BlenderRuntimeView.forPhotograph();
           view.root.updateWorldMatrix(true, false);
           detached.root.matrix.copy(view.root.matrixWorld);
@@ -1216,6 +1219,7 @@ export function blenderRuntime(): BlenderRuntime {
       if (renderFrame) throw new Error('Viewport frame arrived during render transfer');
       if (streamedFrame && streamedFrame.view !== view)
         throw new Error('Blender presenter changed during frame transfer');
+      if (!streamedFrame) frameStagedAt = performance.now();
       view.stageFrame(part);
       streamedFrame = { view, session: part.session, revision: part.revision };
     },
@@ -1264,6 +1268,8 @@ export function blenderRuntime(): BlenderRuntime {
         finally { endApply(); }
       })();
       const appliedAt = performance.now();
+      const stagedAt = frameStagedAt;
+      frameStagedAt = null;
       streamedFrame = null;
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
@@ -1374,10 +1380,10 @@ export function blenderRuntime(): BlenderRuntime {
         // A FILM BEING RENDERED keeps each photograph as it is taken: the encoder reads it here,
         // never back out of Blender's filesystem (that round trip cost 3.5 s a frame).
         if (movie) movie.photographs.push(display.base64);
-        if (rendering) {
-          renderTimings.push({ stageMs: renderStagedAt === null ? 0 : applyAt - renderStagedAt, applyMs: appliedAt - applyAt, photoMs: performance.now() - photoAt });
+        // (a film's frames are viewport photographs, `rendering` null: they are timed too)
+        if (rendering || movie) {
+          renderTimings.push({ stageMs: stagedAt === null ? 0 : applyAt - stagedAt, applyMs: appliedAt - applyAt, photoMs: performance.now() - photoAt });
           if (renderTimings.length > 64) renderTimings.shift();
-          renderStagedAt = null;
         }
         return answer({ ...display, camera: photographedFrom });
       } finally {
