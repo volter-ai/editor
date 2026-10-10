@@ -50,7 +50,8 @@ import { MixerPose, mixerClip, poseDivergence, type MixerClip } from './blender-
 /** How the director reads the engine: the Timeline's subject (its keys, the scene's range) and
  *  one action baked for one armature. */
 export interface SkinReader {
-  clip(armature: string): Promise<BlenderActionClip | null>;
+  /** The scene's clock and range, and `armature`'s action when there is one (null: the scene alone). */
+  clip(armature: string | null): Promise<BlenderActionClip | null>;
   bake(armature: string, action: string): Promise<BlenderActionClip | null>;
 }
 
@@ -252,12 +253,11 @@ export class BlenderSkinDirector {
     if (key !== this.#clipKey) {
       this.#clipKey = key;
       this.#armature = armature;
-      let clip: BlenderActionClip | null = null;
-      if (armature) {
-        this.#engineCalls++;
-        clip = await read.clip(armature);
-        if (clip?.action && clip.armature) this.#baked.set(`${clip.armature}\u0000${clip.action}`, { revision: facts.actions[clip.action] ?? null, clip: mixerClip(clip) });
-      }
+      // THE SCENE'S CLOCK IS READ WITH OR WITHOUT AN ARMATURE (`docs/SCENE-ANIMATION.md`, step 1): a
+      // film of keyed cameras and props has a range, a frame and markers, and the Timeline plays it
+      this.#engineCalls++;
+      const clip: BlenderActionClip | null = await read.clip(armature);
+      if (clip?.action && clip.armature) this.#baked.set(`${clip.armature}\u0000${clip.action}`, { revision: facts.actions[clip.action] ?? null, clip: mixerClip(clip) });
       const previous = this.#clip;
       const rangeChanged = clip?.frameStart !== previous?.frameStart ||
         clip?.frameEnd !== previous?.frameEnd || clip?.fps !== previous?.fps;
