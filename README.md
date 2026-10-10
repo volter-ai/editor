@@ -72,6 +72,10 @@ it, the welcome also shows Sign in with Claude, which does the same for Claude C
 reconnects without a reload. Other agents Volter Harness supports (Gemini, Grok and more) can
 be chosen from Chat's agent picker.
 
+If Enter is pressed before Chat has an agent and available model, Chat explains
+why nothing was sent and keeps the draft. Choose the agent, then send again
+([source and qualification](docs/CHAT-FIRST-SEND.md)).
+
 Other extensions install from the **Extensions** view; Claude Code's official extension is
 `@id:Anthropic.claude-code`. No agent extension is bundled.
 
