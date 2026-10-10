@@ -27,6 +27,9 @@ export interface ModelPlayContext {
    * (`cyclotron levels cook <level>`); one never cooked is refused, a stale one is said in the log.
    */
   load(level: string): Promise<void>;
+  /** READ A LEVEL AHEAD (`play.preload('mission')`): its cook is fetched and decoded in the
+   *  background while the game goes on, so a later `play.load` of it only builds it. */
+  preload(level: string): Promise<void>;
   /** The camera the stage draws with. Navigation re-poses it before each call,
    * so a script states the whole pose every frame. The tool blends that pose
    * during entry and holds keys empty until the camera arrives. */
@@ -354,8 +357,9 @@ export interface ModelPlayContextHost {
   readonly materials: Pick<MaterialOverrides, 'tint' | 'setOpacity'>;
   /** The document's animation bound to `root`; absent, rigged objects stand in their exported pose. */
   readonly animation: DocumentPlayAnimation | undefined;
-  /** Load a level (`play.load`); absent, this runner cannot. */
+  /** Load a level (`play.load`), or read one ahead (`play.preload`); absent, this runner cannot. */
   readonly load?: (level: string) => Promise<void>;
+  readonly preload?: (level: string) => Promise<void>;
   /** One entry in the run's log: the runner's own (`play`) or the script's (`script`). */
   append(source: 'play' | 'script', kind: string, facts?: Record<string, unknown>): void;
   /** What each NLA track was last set to, kept for the run so the log says a change once. */
@@ -400,6 +404,11 @@ export function modelPlayContext(host: ModelPlayContextHost, alive: ModelPlayScr
       if (!alive.value) return Promise.resolve();
       if (!host.load) return Promise.reject(new Error('This game cannot load levels here: the document lends no levels (play.load).'));
       return host.load(level);
+    },
+    preload(level) {
+      if (!alive.value) return Promise.resolve();
+      if (!host.preload) return Promise.reject(new Error('This game cannot load levels here: the document lends no levels (play.preload).'));
+      return host.preload(level);
     },
     find(name) {
       const object = root.getObjectByName(name) ?? null;

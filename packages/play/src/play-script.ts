@@ -255,10 +255,16 @@ export function runPlayScript(options: {
     }).finally(() => { loadingLevel = null; });
     return loadingLevel;
   };
+  const preloadLevel = (level: string): Promise<void> => {
+    if (!options.preloadLevel) return Promise.reject(new Error('This document cannot load levels (play.preload).'));
+    const started = performance.now();
+    return options.preloadLevel(level).then(() => run.append('play', 'level-preloaded', { level, ms: Math.round(performance.now() - started) }));
+  };
   const contextFor = (alive: Script): ModelPlayContext => modelPlayContext({
     root, camera, keys, materials, tracks, movies,
     get animation() { return animation; },
     load: loadLevel,
+    preload: preloadLevel,
     append: (source, kind, facts) => run.append(source, kind, facts),
   }, alive);
   // The run this runner belongs to. A Restart moves the document to the next generation, whose

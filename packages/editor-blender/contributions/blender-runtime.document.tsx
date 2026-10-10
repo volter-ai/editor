@@ -980,6 +980,36 @@ function BlenderViewportArea({
           anim.prefetch();
         }
         setLiveAnimation(animation);
+        /** A LEVEL'S COOK, read and decoded once per run (`play.preload` reads it ahead of its load). */
+        const cooks = new Map<string, Promise<{ manifest: LevelManifest; frame: { session: string }; clips: WebExportClips; movie: BlenderSceneMovie | null }>>();
+        const readCook = (level: string) => {
+          let cook = cooks.get(level);
+          if (!cook) {
+            cook = (async () => {
+              const files = editorHost().files;
+              const dir = levelDir(level);
+              if (!(await files.exists(`${dir}/${LEVEL_MANIFEST_FILE}`)))
+                throw new Error(`There is no cooked level "${level}": cook it with \`cyclotron levels cook ${level}\`.`);
+              const manifest = JSON.parse(await files.read(`${dir}/${LEVEL_MANIFEST_FILE}`)) as LevelManifest;
+              if ((await fileHash(manifest.blend).catch(() => null)) !== manifest.hash)
+                editorHost().console.warn(`Level "${level}" was cooked before ${manifest.blend} last changed, and plays as it was then; \`cyclotron levels cook ${level}\` cooks it again.`, 'model-play');
+              const [frameBytes, clipsText, movieText] = await Promise.all([
+                files.readBytes(`${dir}/${WEB_EXPORT_FRAME_FILE}`),
+                files.read(`${dir}/${WEB_EXPORT_CLIPS_FILE}`),
+                files.read(`${dir}/${WEB_EXPORT_MOVIE_FILE}`).catch(() => 'null'),
+              ]);
+              return {
+                manifest,
+                frame: decodeFrameFile(frameBytes) as { session: string },
+                clips: JSON.parse(clipsText) as WebExportClips,
+                movie: JSON.parse(movieText) as BlenderSceneMovie | null,
+              };
+            })();
+            cooks.set(level, cook);
+            cook.catch(() => { if (cooks.get(level) === cook) cooks.delete(level); });
+          }
+          return cook;
+        };
         stopScript = documentPlayExtension('model')?.run({
           ...(animation ? { animation } : {}),
           documentId: modelId,
@@ -991,23 +1021,12 @@ function BlenderViewportArea({
           // A LEVEL (`play.load`, docs/LEVELS.md), from its cook: its frame replaces the copy's scene
           // in this same view (the stage, the rendered draw and `root` stay), its clips and movie
           // become the run's animation
+          preloadLevel: async (level) => { await readCook(level); },
           loadLevel: async (level) => {
             const files = editorHost().files;
-            const dir = levelDir(level);
-            if (!(await files.exists(`${dir}/${LEVEL_MANIFEST_FILE}`)))
-              throw new Error(`There is no cooked level "${level}": cook it with \`cyclotron levels cook ${level}\`.`);
-            const manifest = JSON.parse(await files.read(`${dir}/${LEVEL_MANIFEST_FILE}`)) as LevelManifest;
-            if ((await fileHash(manifest.blend).catch(() => null)) !== manifest.hash)
-              editorHost().console.warn(`Level "${level}" was cooked before ${manifest.blend} last changed, and plays as it was then; \`cyclotron levels cook ${level}\` cooks it again.`, 'model-play');
-            const [frameBytes, clipsText, movieText] = await Promise.all([
-              files.readBytes(`${dir}/${WEB_EXPORT_FRAME_FILE}`),
-              files.read(`${dir}/${WEB_EXPORT_CLIPS_FILE}`),
-              files.read(`${dir}/${WEB_EXPORT_MOVIE_FILE}`).catch(() => 'null'),
-            ]);
+            const { manifest, frame, clips, movie } = await readCook(level);
+            cooks.delete(level);
             if (stopped) throw new Error('Play stopped while the level was loading.');
-            const clips = JSON.parse(clipsText) as WebExportClips;
-            const movie = JSON.parse(movieText) as BlenderSceneMovie | null;
-            const frame = decodeFrameFile(frameBytes) as { session: string };
             // ITS OWN SESSION: the view takes it as a new scene, never as an older frame of this one
             frame.session = `level:${level}:${Date.now()}`;
             const previous = animation;
