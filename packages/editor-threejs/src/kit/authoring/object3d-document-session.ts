@@ -140,8 +140,6 @@ export class Object3DDocumentSession {
     if (!transform) {
       this.displayTarget?.dispose();
       this.displayTarget = null;
-      this.screenTarget?.dispose();
-      this.screenTarget = null;
     }
     invalidateStages();
   }
@@ -151,13 +149,20 @@ export class Object3DDocumentSession {
       ? this.displayTransform : null;
   }
   /**
-   * THE SCREEN DRAW, OFF SCREEN, for a mode with no display transform (Solid, Wireframe) once depth is
-   * reversed: the canvas's own depth buffer is fixed point, where reversed depth gains nothing. The
-   * scene is drawn into a float-depth target that three treats as the screen (`isXRRenderTarget`: each
-   * material's own tone mapping and the output colour space, exactly as a direct draw), then copied to
-   * the canvas as it is.
+   * THE PLAIN RESOLVE, for a mode with no display transform (Solid, Wireframe) once depth is reversed:
+   * the scene is drawn into the float-depth target like the others, then put on the screen through the
+   * capture's output pass (the renderer's tone mapping and output colour space, as a direct draw had).
+   * The canvas's own depth buffer is fixed point, where reversed depth gains nothing.
    */
-  private screenTarget: THREE.WebGLRenderTarget | null = null;
+  private readonly screenResolve: DocumentDisplayTransform = {
+    render: (renderer, input, output, straightAlpha) => {
+      const pass = viewportCaptureOutputPass(straightAlpha);
+      const was = pass.renderToScreen;
+      pass.renderToScreen = output === null;
+      try { pass.render(renderer, output as THREE.WebGLRenderTarget, input as THREE.WebGLRenderTarget, 0, false); }
+      finally { pass.renderToScreen = was; }
+    },
+  };
   /** One in-flight `import('postprocessing')` at a time — {@link ensureComposer}
    *  is called from every frame. */
   private composerLoading = false;
@@ -999,10 +1004,6 @@ export class Object3DDocumentSession {
     camera.position.set(...view.position);
     camera.quaternion.set(...view.quaternion);
     camera.layers.mask = layers;
-    // BUILT BY HAND, so reversed from the renderer's own state, and marked so before the first draw
-    // (three would otherwise flip it then and rebuild a symmetric frustum over this window)
-    const reversed = rendererReversedDepth(this.renderer);
-    if (reversed) (camera as THREE.PerspectiveCamera & { _reversedDepth?: boolean })._reversedDepth = true;
     camera.projectionMatrix.makePerspective(
       left * view.near,
       right * view.near,
@@ -1011,7 +1012,8 @@ export class Object3DDocumentSession {
       view.near,
       view.far,
       THREE.WebGLCoordinateSystem,
-      reversed,
+      // (built by hand, so the reversed depth three keeps on the camera is passed on)
+      (camera as THREE.PerspectiveCamera & { reversedDepth?: boolean }).reversedDepth === true,
     );
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     camera.updateMatrixWorld(true);
@@ -1444,26 +1446,7 @@ export class Object3DDocumentSession {
     this.advanceLook(deltaSeconds);
     this.ensureComposer();
     const reversed = rendererReversedDepth(this.renderer);
-    const transform = this.materialDisplayTransform();
-    if (!transform && reversed) {
-      const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
-      const target = this.screenTarget ??= (() => {
-        const made = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4, depthTexture: floatDepthTexture(size.x, size.y) });
-        (made as THREE.WebGLRenderTarget & { isXRRenderTarget?: boolean }).isXRRenderTarget = true;
-        return made;
-      })();
-      target.setSize(size.x, size.y);
-      target.texture.colorSpace = this.renderer.outputColorSpace;
-      const previous = this.renderer.getRenderTarget();
-      try {
-        this.renderer.setRenderTarget(target);
-        this.render(camera => this.renderLinearScene(camera, target), interactive);
-        copyToOutput(this.renderer, target, previous);
-      } finally {
-        this.renderer.setRenderTarget(previous);
-      }
-      return;
-    }
+    const transform = this.materialDisplayTransform() ?? (reversed ? this.screenResolve : null);
     if (transform) {
       const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
       const target = this.displayTarget ??= new THREE.WebGLRenderTarget(size.x, size.y, {
@@ -1653,8 +1636,6 @@ export class Object3DDocumentSession {
     this.composer?.dispose();
     this.displayTarget?.dispose();
     this.displayTarget = null;
-    this.screenTarget?.dispose();
-    this.screenTarget = null;
     this.displayTransform = null;
     this.sceneRenderPass = null;
     this.selectionOutline = null;
@@ -1765,17 +1746,6 @@ export class Object3DDocumentSession {
         this.composer = composer;
         this.syncComposerOutput();
         composer.setSize(this.renderWidth, this.renderHeight);
-        // THE OUTLINED DRAW'S DEPTH IS FLOAT TOO: with something selected the scene is drawn into the
-        // composer's input buffer, whose depth was fixed point, while the near plane stays pinned at
-        // 0.1 m (reversed depth): far surfaces fought. A float depth texture keeps them apart; a later
-        // setSize resizes it with the buffer.
-        if (rendererReversedDepth(this.renderer)) {
-          const input = composer.inputBuffer;
-          const held = input.depthTexture;
-          if (held) { held.type = THREE.FloatType; held.format = THREE.DepthFormat; held.needsUpdate = true; }
-          else input.depthTexture = floatDepthTexture(input.width, input.height);
-          input.dispose();
-        }
         // The outline draws from the next frame on; ask for it.
         invalidateStages();
       })
@@ -2007,7 +1977,7 @@ export {
   registerObject3DDocumentSession,
   subscribeObject3DDocumentSessions,
 } from './object3d-document-session-registry';
-import { copyToOutput, floatDepthTexture, rendererReversedDepth } from '../../render/reversed-depth';
+import { floatDepthTexture, rendererReversedDepth } from '../../render/reversed-depth';
 
 /**
  * OBJECT ORIGINS: a dot at the origin of each selected object, drawn over everything at a fixed
