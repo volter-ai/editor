@@ -372,6 +372,35 @@ function patchChatSource(checkout, relative, original, replacement, what) {
 	writeFileSync(file, source.replace(original, replacement));
 }
 
+/** Permissions remain readable when the other composer pickers compact. */
+export function patchNativePermissionPicker(checkout) {
+	const picker = 'src/vs/workbench/contrib/chat/browser/widget/input/permissionPickerActionItem.ts';
+	patchChatSource(checkout, picker, `		const compact = this.pickerOptions.compact.get();
+		element.classList.toggle('icon-only', compact);
+		if (!compact) {
+			labelElements.push(dom.$('span.chat-input-picker-label', undefined, label));
+		}`, `		// The selected permission is a persistent part of the native control.
+		// Compact layout must not turn it into an unexplained lock icon.
+		element.classList.remove('icon-only');
+		labelElements.push(dom.$('span.chat-input-picker-label', undefined, label));`, 'visible selected permission');
+	patchChatSource(checkout, picker, '\tpublic refresh(): void {', `	/** The responsive toolbar must reserve the label's width, even in compact mode. */
+	public getMinimumWidth(): number | undefined {
+		const width = this.element?.scrollWidth;
+		return width && width > 0 ? width : undefined;
+	}
+
+	public refresh(): void {`, 'permission label width');
+	const input = 'src/vs/workbench/contrib/chat/browser/widget/input/chatInputPart.ts';
+	patchChatSource(checkout, input,
+		'\t\t\t[OpenPermissionPickerAction.ID, CHAT_INPUT_COMPACT_PICKER_WIDTH],',
+		'\t\t\t// Permissions retain their selected text; their minimum is measured below.', 'permission width floor');
+	patchChatSource(checkout, input,
+		'getActionMinWidth: action => secondaryPickerMinWidths.get(action.id) ?? (secondaryPickerCompactStates.get(action.id)?.get() ? 22 : undefined),',
+		`getActionMinWidth: action => action.id === OpenPermissionPickerAction.ID
+					? this.permissionWidget?.getMinimumWidth()
+					: secondaryPickerMinWidths.get(action.id) ?? (secondaryPickerCompactStates.get(action.id)?.get() ? 22 : undefined),`, 'measured permission width');
+}
+
 /** Open VSX installs use the same Node installer from commands and Extensions.
  * Like VSCodium and code-server, disable Microsoft's repository-signature check:
  * this Code-OSS build does not ship the proprietary verifier. See
@@ -914,6 +943,7 @@ function patchChatSetupWelcome(checkout) {
 }
 
 function patchNativeChat(checkout) {
+	patchNativePermissionPicker(checkout);
 	// Live harness approvals answer through commands, not a second chat request.
 	// Keep their choices in the native primary/secondary button row rather than
 	// rendering every option as an unrelated primary action.
