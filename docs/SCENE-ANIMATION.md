@@ -133,3 +133,32 @@ with Blender's pose bone by bone (`poseDivergence`), and object by object.
 Each step ships on its own and is checked the Blender way: open the file, scrub the Timeline to
 its extremes, play it through the camera view, read the console, and compare a still with
 Blender's own frame.
+
+## Where it stands (2026-10-10, `feat/scene-clock`)
+
+All six steps have landed on `feat/scene-clock`. Each was checked in the editor on Heck Plungers'
+files (the intro film, the mission's 64 armatures, a test scene of keyed materials and shape keys).
+
+| Step | Commit | What landed |
+|---|---|---|
+| 1 | `63a63064` | The Timeline's clock is the scene's: a file with no armature has its range, frame, markers and transport. |
+| 2 | `81f398a2` | Object transforms, visibility (`hide_render`) and camera projection play on the Timeline's mixer; the camera view follows the markers' cuts. The intro film plays shot by shot in the viewport. |
+| 3-4 | `781093e5` | One `SceneMixer` per presented view (`blender-scene-mixer.ts`): every armature's layers and the movie are placed as actions on one `THREE.AnimationMixer`, evaluated once a frame, then settled (Damped Track and the fidelity check). The Timeline and Play's copy (`blender-play-skin.ts`) use the same one. |
+| 5 | `b7f30ff0` | Keyed material inputs (Base Color, Emission colour and strength, Alpha) and shape keys (morph targets, normals included) play on the same mixer. At Blender's own frame they match Blender's evaluation. |
+| 6 | `54a19dee`, `1477f630` | The web export writes each level's movie and clips. `cyclotron export gltf` writes the model with every armature's actions (`<armature>\|<action>`), the movie as a `Scene` clip, and the keyed materials as `KHR_animation_pointer` channels. The Khronos glTF Validator reports no errors on it. |
+
+Where it differs from the design above, on purpose or not yet:
+
+- **The bake stays split, on purpose.** Bones are still read one action at a time (`rna_action_clip`,
+  cached per action revision), and everything else is read by the movie (`rna_scene_movie`).
+  There is no single `rna_scene_animation` read. A game reads only the actions it plays, when it
+  first plays them: the mission has 110 actions on 64 armatures, and reading them all at open
+  would load every clip up front. What section 1 asks for still holds: one mixer, and one clock.
+- **`MixerPose` and the movie player did not retire.** They are now the code that places their
+  layers on the shared mixer and settles them after the one evaluation. They no longer run a
+  mixer of their own.
+- **Lights are not sampled yet.** A light's energy or colour keys do not play; no film so far
+  keys them.
+- **Events are not yet a track.** Markers bound to cameras are a cut track. Named markers are still
+  read from the movie's marker list (`play-log --kind cutscene` logs the ones a sequence crosses),
+  not from a track on the mixer.
