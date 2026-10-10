@@ -177,19 +177,26 @@ function pageSource(title: string): string {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
     #game { position: fixed; inset: 0; }
+    #boot-late { opacity: 0; max-width: 34em; color: #ffd27a; animation: boot-late 0s linear 60s forwards; }
+    @keyframes boot-late { to { opacity: 1; } }
   </style>
 </head>
 <body>
   <!-- THE PAGE SAYS WHAT HAPPENS BEFORE THE GAME CAN (playtest round 25: a tester saw only black for
        ten minutes, the game's script never ran, and nothing said why): a line that is there before any
        script, every error written on screen with the browser's version, WebGL2 checked, and after a minute
-       still loading, what to do. The game's script removes the line when it starts. -->
+       still loading, what to do. The game's script removes the line when it starts. A page whose scripts
+       are all refused (round 26: a service worker an earlier page left on the site) still says, by CSS
+       alone, what to do after a minute; the inline script swaps that for its own, which names the browser. -->
   <div id="boot" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#cfd6dc;font:15px/1.5 system-ui,sans-serif;text-align:center;padding:24px;z-index:10">
     <div id="boot-line">Loading the game…</div>
+    <div id="boot-late">Still loading after a minute. If nothing changes, press F12, open Console and read out the red lines, then try the page in a new incognito window.</div>
     <pre id="boot-said" style="color:#ff8a80;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;max-width:90vw"></pre>
   </div>
   <script>
     (function () {
+      var late = document.getElementById('boot-late');
+      if (late) late.remove();
       var said = function (text) {
         var pre = document.getElementById('boot-said');
         if (!pre) { pre = document.createElement('pre'); pre.style.cssText = 'position:fixed;left:0;right:0;bottom:0;margin:0;padding:12px;color:#ff8a80;background:#000c;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;z-index:100'; document.body.appendChild(pre); }
