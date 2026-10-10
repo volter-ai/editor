@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import type { CaptureRequest } from '../protocol';
 import type { PresentAnswer } from '../runtime';
 import { BlenderRuntimeView } from './blender-runtime-view';
-import { adoptReversedDepth, configureDepth, DEPTH_RENDERER_OPTIONS, floatDepthTexture } from './reversed-depth';
+import { configureDepth, DEPTH_RENDERER_OPTIONS, floatDepthTexture } from './reversed-depth';
 
 export interface PresenterOptions {
   /** The canvas to render into; an OffscreenCanvas of 1x1 when absent. */
@@ -191,7 +191,6 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
         }
         try {
           view.prepareDraw(camera, { interactive: false, height, renderer });
-          adoptReversedDepth(renderer, scene, camera);
           renderer.render(scene, camera);
         } finally {
           scene.background = background;
