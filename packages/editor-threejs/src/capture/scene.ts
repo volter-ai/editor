@@ -5,7 +5,7 @@ import { acquireInspectorPreviewRenderer } from '../viewport/preview-renderer';
 import { viewportCaptureOutputPass } from './output-pass';
 import type { DocumentDisplayTransform } from '../render/document-display-transform';
 import {resolveSceneLinearSize} from './linear-resolve';
-import { floatDepthTexture, rendererReversedDepth } from '../render/reversed-depth';
+import { adoptReversedDepth, floatDepthTexture, rendererReversedDepth } from '../render/reversed-depth';
 
 export interface SceneCaptureOptions {
   width: number;
@@ -101,6 +101,9 @@ function capture(
     renderer.setRenderTarget(hdr);
     finishDraw=options.prepareDraw?.(renderer,camera);
     renderer.clear();
+    // (a photograph's camera and the suns it composed are new: reversed before three culls and builds the
+    // shadow matrices, or every lit face reads as shadowed in its one frame)
+    adoptReversedDepth(renderer, scene, camera);
     renderer.render(scene, camera);
     const resolved = options.effect?.render(renderer, hdr, scene, camera) ?? hdr;
     if (resolved.texture.type !== THREE.HalfFloatType || resolved.width !== renderWidth || resolved.height !== renderHeight)
