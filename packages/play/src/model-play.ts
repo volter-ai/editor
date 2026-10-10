@@ -374,3 +374,45 @@ export function setModelPlayBotState(documentId: string, state: string | null): 
 export function noteModelPlayPerson(documentId: string): void {
   if (playing.has(documentId) && !modelPlayAutoplay(documentId).person) setAutoplay(documentId, { person: true });
 }
+
+/**
+ * WHERE A RUN STARTS (`docs/LEVELS.md`, "Starting anywhere"). A script offers named starts
+ * (`play.starts({ 'black-box-carry': (start) => … })`, `play-script.ts`): situations it can set up
+ * at once, skipping its menus and its way there. Which one Play begins at is the editor's, kept
+ * here, chosen in the Game panel or with `play start <name>`, and KEPT across Play and Restart
+ * until changed: a test of one situation starts there every time. Null is the game's own beginning.
+ */
+export interface ModelPlayStart {
+  /** The start Play begins at, or null for the game's own beginning. */
+  readonly chosen: string | null;
+  /** The starts the running script offers, in its order (empty before it runs, or without any). */
+  readonly offered: readonly string[];
+}
+const NO_START: ModelPlayStart = { chosen: null, offered: [] };
+const starts = new Map<string, ModelPlayStart>();
+
+export function modelPlayStart(documentId: string): ModelPlayStart {
+  return starts.get(documentId) ?? NO_START;
+}
+
+/** Choose where the next Play (and every Restart) begins; null for the game's own beginning. A
+ *  name the running script does not offer is refused while it runs; while stopped it is kept, and
+ *  the start says so in the play log if the script then offers no such start. */
+export function setModelPlayStart(documentId: string, name: string | null): void {
+  const now = modelPlayStart(documentId);
+  if (name !== null) {
+    if (!/^[A-Za-z][\w-]{0,39}$/.test(name)) throw new Error(`"${name}" is not a start's name: letters, digits, - and _, starting with a letter.`);
+    if (playing.has(documentId) && now.offered.length && !now.offered.includes(name))
+      throw new Error(`This game offers no start "${name}"; it offers ${now.offered.map((one) => `"${one}"`).join(', ')}.`);
+  }
+  starts.set(documentId, { ...now, chosen: name });
+  publishClock();
+}
+
+/** The runner's report of the starts the running script offers. */
+export function setModelPlayStartsOffered(documentId: string, offered: readonly string[]): void {
+  const now = modelPlayStart(documentId);
+  if (now.offered.length === offered.length && now.offered.every((one, i) => one === offered[i])) return;
+  starts.set(documentId, { ...now, offered: [...offered] });
+  publishClock();
+}

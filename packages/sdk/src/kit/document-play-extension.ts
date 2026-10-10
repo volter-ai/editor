@@ -163,6 +163,16 @@ export interface DocumentPlayTransport {
    *  (`armed`); dropped if it offers none, or not the behaviour asked for. Absent, autoplay can
    *  only be switched while running. */
   armAutoplay?(documentId: string, armed: boolean, request?: DocumentPlayAutoplayRequest): void;
+  /** Where Play begins (`play.starts` in the play script): the chosen start, kept across Play and
+   *  Restart, and the starts the running script offers. Absent, the tool has no starts. */
+  start?(documentId: string): DocumentPlayStart;
+  /** Choose the start Play (and every Restart) begins at; null for the game's own beginning. */
+  setStart?(documentId: string, name: string | null): void;
+}
+/** WHERE A RUN STARTS: a game offers named starts, the editor keeps which one Play begins at. */
+export interface DocumentPlayStart {
+  readonly chosen: string | null;
+  readonly offered: readonly string[];
 }
 export interface DocumentPlayAutoplayRequest {
   readonly behavior?: string | null;

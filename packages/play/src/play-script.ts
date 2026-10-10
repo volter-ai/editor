@@ -84,6 +84,7 @@ import {
   modelPlayAutoplay,
   modelPlayClock,
   modelPlayGeneration,
+  modelPlayStart,
   noteModelPlayPerson,
   registerModelPlayStop,
   setModelPlayAutoplay,
@@ -91,6 +92,7 @@ import {
   setModelPlayFailure,
   setModelPlayAutoplayAvailable,
   setModelPlayPaused,
+  setModelPlayStartsOffered,
   settleModelPlayAutoplay,
   subscribeModelPlayClock,
   takeModelPlayStep,
@@ -168,6 +170,21 @@ export interface ModelPlayContext {
    *     });
    */
   autoplay(bot: ModelPlayAutoplayController | Readonly<Record<string, ModelPlayAutoplayController>> | null): void;
+  /**
+   * Offer this game's STARTS: situations it can set up at once, by name, so a test of one begins
+   * there rather than at the title (`docs/LEVELS.md`, "Starting anywhere"). The person chooses one in
+   * the Game panel (or an agent, `play start <name>`), and it is kept across Play and Restart until
+   * changed. The chosen start's function is called once, after the script's default export and
+   * before the game's first update; it sets the game's own state to the situation (skip the menus,
+   * drop the player, hand them the item). Offer them where you offer the bot; registering again
+   * replaces them, `null` withdraws them. A start combines with autoplay: `play start carry` then
+   * `play play` and `play autoplay on win` tests the carry from its first step.
+   *
+   *     play.starts({
+   *       'boss': () => { phase = 'play'; player.pos.copy(arena); },
+   *     });
+   */
+  starts(starts: Readonly<Record<string, ModelPlayStartSetup>> | null): void;
   /**
    * Set the action an object's armature plays, as Blender's `animation_data.action` does: any
    * action in the file, by name. `object` is the armature, its skinned mesh, or an object above or
@@ -342,6 +359,14 @@ export interface ModelPlayAutoplayInput {
  * each change is a `bot-state` entry in the play log. Say intentions and their reasons (a goal,
  * a target, why it is waiting), not per-frame numbers.
  */
+/** What a start is handed when the game begins at it. */
+export interface ModelPlayStartInfo {
+  /** The start's name, as offered. */
+  readonly name: string;
+}
+/** One named start: sets the game's state to its situation (`play.starts`). */
+export type ModelPlayStartSetup = (start: ModelPlayStartInfo) => void;
+
 export type ModelPlayAutoplayController = (input: ModelPlayAutoplayInput) =>
   Iterable<string> | { readonly keys?: Iterable<string> | null; readonly state?: string | null } | null | undefined;
 
@@ -401,7 +426,20 @@ interface Script {
   value: boolean;
   /** The bot's behaviours by name, in the order offered; null without a bot. */
   bot: Readonly<Record<string, ModelPlayAutoplayController>> | null;
+  /** The starts it offered `play.starts`, by name; null without any. */
+  starts: Readonly<Record<string, ModelPlayStartSetup>> | null;
   readonly unknown: Set<string>;
+}
+
+/** `play.starts`' argument, checked: named functions, or null. */
+function startSetups(starts: unknown): Readonly<Record<string, ModelPlayStartSetup>> | null {
+  if (starts === null) return null;
+  if (typeof starts !== 'object' || Array.isArray(starts)) throw new Error('play.starts takes its starts by name (`{ boss: () => { … } }`), or null.');
+  for (const [name, setup] of Object.entries(starts as Record<string, unknown>)) {
+    if (!/^[A-Za-z][\w-]{0,39}$/.test(name)) throw new Error(`play.starts start "${name}" is not a name: letters, digits, - and _, starting with a letter.`);
+    if (typeof setup !== 'function') throw new Error(`play.starts start "${name}" is not a function (what sets the situation up).`);
+  }
+  return Object.freeze({ ...(starts as Record<string, ModelPlayStartSetup>) });
 }
 
 /** The behaviour names a script's bot offers, in its order. */
@@ -721,6 +759,10 @@ export function runPlayScript(options: {
       const behaviors = botBehaviors(bot);
       if (alive.value) alive.bot = behaviors;
     },
+    starts(starts) {
+      const setups = startSetups(starts);
+      if (alive.value) alive.starts = setups;
+    },
     setAction(object, action, options) {
       const found = animated(alive, object, action, 'setAction');
       if (!found.ok) return false;
@@ -880,7 +922,7 @@ export function runPlayScript(options: {
     const mine = ++attempt;
     if (pending) { dispose(pending.game, pending.composition); pending = null; }
     let nextComposition: PlayComposition | undefined;
-    const alive: Script = { value: true, bot: null, unknown: new Set() };
+    const alive: Script = { value: true, bot: null, starts: null, unknown: new Set() };
     try {
       if (mountLayers) {
         const project = getCurrentProject();
@@ -1030,6 +1072,19 @@ export function runPlayScript(options: {
       const next = pending;
       pending = null;
       try {
+        // THE CHOSEN START, set up once before the first update (`play.starts`): the script's default
+        // export has built its state, and the start moves it to its situation
+        const offeredStarts = scripts.get(next.game)?.starts ?? null;
+        setModelPlayStartsOffered(options.documentId, offeredStarts ? Object.keys(offeredStarts) : []);
+        const chosen = modelPlayStart(options.documentId).chosen;
+        if (chosen !== null) {
+          const setup = offeredStarts?.[chosen];
+          if (!setup) run.append('play', 'start-refused', { start: chosen, offered: offeredStarts ? Object.keys(offeredStarts) : [], why: offeredStarts ? 'the play script offers no start of that name' : 'the play script offers no starts (play.starts)' });
+          else {
+            setup({ name: chosen });
+            run.append('play', 'start', { start: chosen });
+          }
+        }
         update(next.game, updates[0]!);
         end();
         game = next.game;
