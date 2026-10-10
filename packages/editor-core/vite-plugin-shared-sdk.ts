@@ -3,6 +3,7 @@
  * Each entry is the original module, so Rollup and the browser share its
  * registries, project state and callbacks rather than copying implementations.
  */
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
@@ -114,7 +115,15 @@ export function sharedSdkPlugin(urls: Record<string, string>, editorPackageRoot:
       // from other dependencies' prebundles too. Keep this with the redirect,
       // not a host's partial list of known SDK doors. The changed exclude list
       // also invalidates Vite's existing optimizer cache on the next start.
-      return { optimizeDeps: { exclude: ['@volter/sdk'] } };
+      //
+      // THE BUILD'S CHUNKS ARE PART OF EVERY SERVED MODULE'S VERSION. A project module importing the
+      // SDK is served with this build's hashed chunk URLs written into it, under Vite's `?v=` (a hash
+      // of this config and the lockfile) and an immutable cache header. A new editor build changes
+      // the chunk names but not that version, so the browser kept a module naming the previous
+      // build's chunks: a second copy of the SDK's project state, and Play's script found "No
+      // project is open" (2026-10-09). Vite hashes `esbuildOptions`, so the map's digest goes there.
+      const build = createHash('sha256').update(JSON.stringify(urls)).digest('hex').slice(0, 16);
+      return { optimizeDeps: { exclude: ['@volter/sdk'], esbuildOptions: { define: { __VOLTER_SHARED_SDK_BUILD__: JSON.stringify(build) } } } };
     },
     async resolveId(source, importer, options) {
       // These URLs identify the browser composition, never Node tool modules.
