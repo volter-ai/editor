@@ -19,8 +19,8 @@
  *
  *  Regenerate:  node scripts/workbench/generate-settings.mjs --write
  *  Source (sha256 at generation; the generator refuses when it has moved):
- *    5e3885949d5f2bb1cc725bdd45223e9697eed2ba1ca435a909699c5f1a414c9a  packages/project/schemas/volter-settings.schema.json
- *  16 keys.
+ *    f3b50a854833140ae91ddaf088c2ccbd9dcbe96c12dcf06045b8a271c93e1140  packages/project/schemas/volter-settings.schema.json
+ *  17 keys.
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
@@ -41,6 +41,7 @@ export const VOLTER_SETTING_KEYS: readonly string[] = [
 	'volter.appearance.regions.hierarchyInstanceRule',
 	'volter.appearance.regions.hierarchyRestrictions',
 	'volter.keymap',
+	'volter.chat.runtimePolicy',
 	'volter.play.keepPanelsVisible',
 	'volter.devicePreview.preset',
 	'volter.devicePreview.touch',
@@ -124,6 +125,12 @@ export const VOLTER_CONFIGURATION_NODE: IConfigurationNode = {
 		'volter.keymap': {
 			type: 'string',
 			description: localize('volter.keymap', "Active keymap preset id (`volter`, `blender`, …)."),
+			scope: ConfigurationScope.WINDOW,
+		},
+		'volter.chat.runtimePolicy': {
+			type: 'string',
+			enum: ['default', 'yolo'],
+			description: localize('volter.chat.runtimePolicy', "Project Chat runtime policy. Set this workspace value to yolo for native Claude Code or Codex without approval prompts or the Codex sandbox. Applies on the next start or resume; user-wide values are not used."),
 			scope: ConfigurationScope.WINDOW,
 		},
 		'volter.play.keepPanelsVisible': {

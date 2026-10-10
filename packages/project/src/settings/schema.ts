@@ -81,6 +81,16 @@ export const EditorSettingsSchema = z
       .optional()
       .describe('How the editor chrome looks.'),
     keymap: z.string().optional().describe('Active keymap preset id (`volter`, `blender`, …).'),
+    chat: z
+      .object({
+        runtimePolicy: z
+          .enum(['default', 'yolo'])
+          .optional()
+          .describe('Project Chat runtime policy. Set this workspace value to yolo for native Claude Code or Codex without approval prompts or the Codex sandbox. Applies on the next start or resume; user-wide values are not used.'),
+      })
+      .strict()
+      .optional()
+      .describe('Chat runtime choices for this project.'),
     play: z
       .object({
         keepPanelsVisible: z

@@ -8,6 +8,7 @@
  * belongs in @volter/supercode-client.
  */
 
+import { projectChatRuntimePolicy, type ChatRuntimePolicy } from './chat-runtime-policy';
 import { randomUUID } from 'node:crypto';
 import { existsSync, statSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -157,6 +158,8 @@ type HeadlessDeriveTaskPlan = (session: HeadlessLoadedSession | null) => Harness
 type HeadlessSessionIdentity = (locator: HeadlessSessionDescriptor['locator']) => Promise<string>;
 type SupercodeClient = {
   close(): Promise<void>;
+  /** The native service must explicitly advertise its project-YOLO enforcement. */
+  runtimeCapabilities?(params: { harness: string; policy: 'yolo' }): Promise<{ yolo_policy?: boolean }>;
   discover(query: {
     workspace?: string;
     query?: string;
@@ -235,7 +238,7 @@ const MANAGED_RUNTIME_START_TIMEOUT_MS = 180_000;
 /** Retain the SDK's own managed-runtime object without changing its behavior. */
 export function withManagedRuntimeObserver(
   client: SupercodeClient,
-  observe: (runtime: HeadlessManagedRuntime) => void,
+  observe: (runtime: HeadlessManagedRuntime, backend: unknown) => void,
   transformBackend: (backend: unknown) => Promise<unknown> = async (backend) => backend,
 ): SupercodeClient {
   return new Proxy(client, {
@@ -249,11 +252,12 @@ export function withManagedRuntimeObserver(
           args[1] && typeof args[1] === 'object' && !Array.isArray(args[1])
             ? (args[1] as Record<string, unknown>)
             : {};
+        const backend = await transformBackend(args[0]);
         const runtime = (await Reflect.apply(value, target, [
-          await transformBackend(args[0]),
+          backend,
           { ...suppliedOptions, timeoutMs: MANAGED_RUNTIME_START_TIMEOUT_MS },
         ])) as HeadlessManagedRuntime;
-        observe(runtime);
+        observe(runtime, backend);
         return runtime;
       };
     },
@@ -956,6 +960,7 @@ export class HarnessChatService {
   );
   /** The last managed runtime the SDK handed back, for the frontend handoff's receipt lookup. */
   private managedRuntime: HeadlessManagedRuntime | null = null;
+  private managedRuntimePolicy: ChatRuntimePolicy | null = null;
   /** Runtime requests (approvals, questions) the person has not answered. */
   private readonly pendingRuntimeRequests = new Set<string>();
   /** The open turn's tool calls whose results are not back yet, by call id. */
@@ -1242,7 +1247,11 @@ export class HarnessChatService {
     return { ...handoff, env: { ...handoff.env, ...controls } };
   }
 
-  private observeChatRuntime(runtime: HeadlessManagedRuntime): void {
+  private observeChatRuntime(runtime: HeadlessManagedRuntime, backend: unknown): void {
+    const params = backend as { harness?: string; policy?: ChatRuntimePolicy; base_url?: unknown } | null;
+    this.managedRuntimePolicy = params && params.base_url === undefined
+      && ['claude-code', 'codex'].includes(params.harness ?? '')
+      ? params.policy === 'yolo' ? 'yolo' : 'default' : null;
     this.managedRuntime = runtime;
     this.observedModel = null;
     this.pendingRuntimeRequests.clear();
@@ -1458,6 +1467,10 @@ export class HarnessChatService {
     const snapshot = this.snapshot();
     const launchContext = await this.chatProcessContext();
     const actions = chatSetupActions(snapshot.harnesses, launchContext);
+    let newChatRuntimePolicy: ChatRuntimePolicy | null = null;
+    let runtimePolicyError: string | null = null;
+    try { newChatRuntimePolicy = await projectChatRuntimePolicy(this.options.getProjectRoot()); }
+    catch (error) { runtimePolicyError = errorMessage(error); }
     return {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
@@ -1484,6 +1497,8 @@ export class HarnessChatService {
       // which turned Auto on for existing chats (0.5.187). The Chat applies it only where it can answer the
       // runtime's approvals (Claude Code, Codex); other harnesses keep their prompts.
       newChatPermission: 'autoApprove',
+      newChatRuntimePolicy,
+      runtimePolicyError,
       setup: {
         ready: Boolean(this.frontendHandoffValue),
         actions,
@@ -1691,6 +1706,7 @@ export class HarnessChatService {
           await withTimeout(previousController.close(), 10_000, 'Closing previous chat runtime');
           if (this.closed || generation !== this.workspaceGeneration) throw new Error('The chat workspace changed while closing its previous runtime.');
           this.managedRuntime = null;
+          this.managedRuntimePolicy = null;
           this.observedModel = null;
           await this.startController(workspace, false, generation);
         })();
@@ -1707,6 +1723,7 @@ export class HarnessChatService {
       if (resumeId) { this.chatCatalog.active = resumeId; this.chatCatalog.save(); }
       else if (freshFor && this.chatCatalog.sessions.has(freshFor)) { this.chatCatalog.active = freshFor; this.chatCatalog.save(); }
       else this.chatCatalog.create(selection);
+      this.rememberRuntimePolicy();
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) throw new Error('The selected harness did not start.');
       const handoff = await mintFrontendHandoff({ runtimeSessionId: runtimeId,
@@ -1726,6 +1743,15 @@ export class HarnessChatService {
       throw error;
     }
     finally { this.selectingChat = false; this.rememberChatSession(); }
+  }
+
+  /** Record only a policy carried by the runtime that actually opened. */
+  private rememberRuntimePolicy(): void {
+    const entry = this.chatCatalog.active ? this.chatCatalog.sessions.get(this.chatCatalog.active) : undefined;
+    if (!entry) return;
+    if (this.managedRuntimePolicy) entry.runtimePolicy = this.managedRuntimePolicy;
+    else delete entry.runtimePolicy;
+    this.chatCatalog.save();
   }
 
   private async runtimeFrontendHandoff(): Promise<FrontendHandoffResult> {
@@ -1838,6 +1864,7 @@ export class HarnessChatService {
         const session = this.lastSnapshot.sessions.find(s => s.id === this.lastSnapshot.activeSessionId);
         if (session?.harness === entry.selection.harness) { entry.identity = session.identity; entry.title = session.title; this.chatCatalog.save(); }
       }
+      this.rememberRuntimePolicy();
       this.rememberChatSession();
       return { env: { ...handoff.env }, refusal: null };
     } catch (error) {
@@ -1889,6 +1916,7 @@ export class HarnessChatService {
     const handoff = this.frontendHandoffValue;
     this.frontendHandoffValue = null;
     this.managedRuntime = null;
+    this.managedRuntimePolicy = null;
     void handoff?.dispose();
     this.closing = controller
       ? withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').then(
@@ -2005,18 +2033,29 @@ export class HarnessChatService {
     // harness that is not signed in is refused by name (ARCHITECTURE-CORE §Managed
     // services, "A coding harness is not a provider").
     const transformBackend = async (backend: unknown) => {
+      const requested = backend as { cwd?: unknown; base_url?: unknown } | null;
+      const runtimeWorkspace = typeof requested?.cwd === 'string' ? resolve(requested.cwd) : resolve(this.options.getProjectRoot());
+      const policy = requested?.base_url === undefined ? await projectChatRuntimePolicy(runtimeWorkspace) : null;
       let params = await withCodingInference(
         backend,
-        () => this.options.resolveCodingInference?.(workspace) ?? Promise.resolve(null),
+        () => this.options.resolveCodingInference?.(runtimeWorkspace) ?? Promise.resolve(null),
         piExtensionPath,
-        (harness) => this.harnessReadiness(harness, workspace),
+        (harness) => this.harnessReadiness(harness, runtimeWorkspace),
       );
       const configured = this.chatSelection;
       const harness = params && typeof params === 'object' ? (params as { harness?: string }).harness : undefined;
       const configures = harness !== undefined && harness === configured.harness && Boolean(configured.model || configured.effort);
-      // Every Claude Code start and resume names its manual mode (`withManualApproval`): "Ask for approval"
+      if (policy === 'yolo') {
+        if (!['claude-code', 'codex'].includes(harness ?? '')) throw new Error('Project YOLO is available only for native Claude Code and Codex.');
+        const capabilities = await this.discoveryClient?.runtimeCapabilities?.({ ...(params as object), harness: harness!, policy: 'yolo' });
+        if (!capabilities || !('yolo_policy' in capabilities) || capabilities.yolo_policy !== true) {
+          throw new Error('This runtime service does not advertise project YOLO for configured launches and resumed threads. Update it before starting this chat.');
+        }
+      }
+      if (policy && params && typeof params === 'object') params = { ...params, policy };
+      // A default-policy Claude Code start or resume names its manual mode: "Ask for approval"
       // (t_8ea14bad). Not an attach (`base_url`): a process already running cannot take a new mode.
-      const asks = harness === 'claude-code' && (params as { base_url?: unknown }).base_url === undefined;
+      const asks = policy !== 'yolo' && harness === 'claude-code' && (params as { base_url?: unknown }).base_url === undefined;
       if (configures || asks) {
         type Launch = { program: string; arguments: string[]; env?: Record<string, string> };
         let launch = (params as { launch?: Launch }).launch;
@@ -2049,7 +2088,7 @@ export class HarnessChatService {
       if (params === null || typeof params !== 'object') return params;
       const supplied = params as { mcp_servers?: unknown };
       if (supplied.mcp_servers !== undefined) return params;
-      const servers = projectMcpServers(workspace);
+      const servers = projectMcpServers(runtimeWorkspace);
       return servers.length > 0 ? { ...supplied, mcp_servers: servers } : params;
     };
     if (this.options.createClient) {
@@ -2067,7 +2106,7 @@ export class HarnessChatService {
       const client = withCallerSessionDiscovery(
         withManagedRuntimeObserver(
           await this.options.createClient(workspace),
-          (runtime) => this.observeChatRuntime(runtime),
+          (runtime, backend) => this.observeChatRuntime(runtime, backend),
           transformBackend,
         ),
         () => this.callerSessions(),
@@ -2112,7 +2151,7 @@ export class HarnessChatService {
           ...(command ? supercodeInvocation(command, ['harness', 'serve']) : {}),
           env: launchContext.env,
         }),
-        (runtime) => this.observeChatRuntime(runtime),
+        (runtime, backend) => this.observeChatRuntime(runtime, backend),
         transformBackend,
       ),
       () => this.callerSessions(),

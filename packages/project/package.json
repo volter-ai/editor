@@ -58,7 +58,8 @@
     "zod": "^4.3.6"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "generate-schema": "node --experimental-strip-types scripts/generate-schema.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0"

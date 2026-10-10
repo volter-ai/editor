@@ -12,6 +12,8 @@ export interface ManagedChatSession {
   /** The approval mode this chat starts in when no one picked one. Chats created from 0.5.188 on start in
    *  Auto approve (the owner's ask, for NEW chats); a chat saved before has none, so it keeps asking. */
   defaultPermission?: 'ask' | 'autoApprove';
+  /** The policy used by this chat's last opened runtime, not a project default. */
+  runtimePolicy?: 'default' | 'yolo';
 }
 
 /** Durable native-chat identities. Runtime endpoints and credentials are never persisted here. */
@@ -32,9 +34,10 @@ export class ChatSessionCatalog {
     try {
       for (const entry of saved.sessions) {
         if (!/^[a-zA-Z0-9-]+$/.test(entry.id) || (entry.identity !== null && typeof entry.identity !== 'string')) throw new Error('Invalid saved chat session.');
-        const { defaultPermission, ...rest } = entry;
+        const { defaultPermission, runtimePolicy, ...rest } = entry;
         this.sessions.set(entry.id, {...rest, selection: validateChatSelection(entry.selection),
-          ...(defaultPermission === 'autoApprove' || defaultPermission === 'ask' ? { defaultPermission } : {})});
+          ...(defaultPermission === 'autoApprove' || defaultPermission === 'ask' ? { defaultPermission } : {}),
+          ...(runtimePolicy === 'default' || runtimePolicy === 'yolo' ? { runtimePolicy } : {})});
       }
       if (saved.active && !this.sessions.has(saved.active)) throw new Error('Saved active chat is missing.');
       this.active = saved.active;

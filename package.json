@@ -19,7 +19,8 @@
     "check:served-modules": "node scripts/check-served-bundle-modules.mjs",
     "build:playable": "node scripts/build-release-packages.mjs release/playable.json && node scripts/write-bundled-notices.mjs release/playable.json",
     "check:release:playable": "node scripts/check-release.mjs release/playable.json",
-    "check:packed-imports:playable": "node scripts/check-packed-imports.mjs release/playable.json"
+    "check:packed-imports:playable": "node scripts/check-packed-imports.mjs release/playable.json",
+    "generate-schema": "npm run generate-schema -w @volter/project"
   },
   "devDependencies": {
     "typescript": "5.9.3",
