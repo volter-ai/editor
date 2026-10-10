@@ -22,6 +22,7 @@ import * as THREE from 'three';
 import type { CaptureRequest } from '../protocol';
 import type { PresentAnswer } from '../runtime';
 import { BlenderRuntimeView } from './blender-runtime-view';
+import { adoptReversedDepth, configureDepth, DEPTH_RENDERER_OPTIONS, floatDepthTexture } from './reversed-depth';
 
 export interface PresenterOptions {
   /** The canvas to render into; an OffscreenCanvas of 1x1 when absent. */
@@ -78,7 +79,7 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
   const scene = new THREE.Scene();
   scene.add(view.root);
   const canvas = options.canvas ?? new OffscreenCanvas(1, 1);
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  const renderer = configureDepth(new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, ...DEPTH_RENDERER_OPTIONS }));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -167,11 +168,15 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
     const previousExposure = renderer.toneMappingExposure;
     renderer.toneMapping = THREE.NoToneMapping;
     renderer.toneMappingExposure = 1;
-    const sceneTarget = new THREE.WebGLRenderTarget(width, height, { type: THREE.HalfFloatType });
+    const reversed = renderer.capabilities.reversedDepthBuffer === true;
+    const sceneTarget = new THREE.WebGLRenderTarget(width, height, {
+      type: THREE.HalfFloatType,
+      ...(reversed ? { depthTexture: floatDepthTexture(width, height) } : {}),
+    });
     let effect: ReturnType<BlenderRuntimeView['createWorldVolumePass']>;
     try {
       effect = render.linearInput ? undefined : view.createWorldVolumePass();
-      if (effect) sceneTarget.depthTexture = new THREE.DepthTexture(width, height);
+      if (effect && !reversed) sceneTarget.depthTexture = new THREE.DepthTexture(width, height);
       await view.setRendered(true, camera);
       let pixels: Uint16Array;
       if (render.linearInput) {
@@ -186,6 +191,7 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
         }
         try {
           view.prepareDraw(camera, { interactive: false, height, renderer });
+          adoptReversedDepth(renderer, scene, camera);
           renderer.render(scene, camera);
         } finally {
           scene.background = background;

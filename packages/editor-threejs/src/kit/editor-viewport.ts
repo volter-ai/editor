@@ -92,6 +92,7 @@ import { activeKeymapNavigation, subscribeEditorKeymap } from '@volter/sdk/kit/k
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';
 import { ensureThreeIntegration } from './three-integration';
+import { rendererReversedDepth, reversedDepthOf } from '../render/reversed-depth';
 
 /** A bounds box or LineSegments wireframe tagged with its source entity object. */
 /** A selected mesh's wireframe (the view's `selection.wire` overlay, Unity's Selection Wire):
@@ -3576,7 +3577,7 @@ export class EditorViewport {
       distance = this.freeCamera.position.distanceTo(_clipSphere.center);
       radius = _clipSphere.radius;
     }
-    const { near, far } = fitClipPlanes(distance, radius);
+    const { near, far } = fitClipPlanes(distance, radius, this._renderer ? rendererReversedDepth(this._renderer) : false);
     if (near === this.camera.near && far === this.camera.far) return;
     this.camera.near = near;
     this.camera.far = far;
@@ -5310,8 +5311,8 @@ export class EditorViewport {
 
     for (const vert of this._vertexSnapTargets) {
       const vs = vert.clone().project(this._screenCamera);
-      // Skip vertices behind camera
-      if (vs.z > 1) continue;
+      // Skip vertices behind the camera or past its far plane (reversed depth: outside [0, 1])
+      if (reversedDepthOf(this._screenCamera) ? vs.z < 0 || vs.z > 1 : vs.z > 1) continue;
       const vertScreenX = ((vs.x + 1) / 2) * rect.width;
       const vertScreenY = ((-vs.y + 1) / 2) * rect.height;
       const dx = entityScreenX - vertScreenX;
@@ -6358,7 +6359,8 @@ export class EditorViewport {
             cornerIndex & 4 ? bounds.max.z : bounds.min.z,
           );
           corner.project(screenCamera);
-          if (corner.z < -1 || corner.z > 1) {
+          // (inside the depth range: [-1, 1], or [0, 1] once depth is reversed)
+          if (corner.z < (reversedDepthOf(screenCamera) ? 0 : -1) || corner.z > 1) {
             inside = false;
             if (!touch) break;
             continue;
