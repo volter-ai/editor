@@ -194,6 +194,8 @@ To rebuild after a change, name the packages it touched:
 `node scripts/build-release-packages.mjs release/modeling.json @volter/editor-core @volter/cyclotron`.
 [`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs) builds the
 Code-OSS workbench.
+The current source pin includes the [shared Chat draft cache correction](docs/CHAT-DRAFT-CACHE.md);
+that page records its source and remaining Windows qualification.
 
 Only the packages listed in [release/modeling.json](release/modeling.json) and
 [release/game.json](release/game.json) are published, from the `publish` branch after a
