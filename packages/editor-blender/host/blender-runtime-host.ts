@@ -571,6 +571,47 @@ let movie: {
   error: string | null;
 } | null = null;
 
+/**
+ * A FILM FRAME AS VIDEO IS STORED: BT.709 Y'CbCr 4:2:0 in the limited range every player expects, made
+ * here from the photograph's pixels. Handed an RGB image, Chrome's encoder marks its VP9 full range,
+ * and Chrome's own player then refuses the file (PIPELINE_ERROR_DECODE on the first frame; the same
+ * stream with only that flag set to limited plays).
+ */
+let frameCanvas: OffscreenCanvas | null = null;
+function videoFrameOf(image: ImageBitmap, width: number, height: number, timestamp: number, duration: number): VideoFrame {
+  frameCanvas ??= new OffscreenCanvas(width, height);
+  if (frameCanvas.width !== width || frameCanvas.height !== height) { frameCanvas.width = width; frameCanvas.height = height; }
+  const context = frameCanvas.getContext('2d', { willReadFrequently: true })!;
+  context.drawImage(image, 0, 0, width, height);
+  const rgba = context.getImageData(0, 0, width, height).data;
+  const cw = width / 2, ch = height / 2;
+  const planes = new Uint8Array(width * height + 2 * cw * ch);
+  const u0 = width * height, v0 = u0 + cw * ch;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      planes[y * width + x] = Math.round(16 + (219 / 255) * (0.2126 * rgba[i]! + 0.7152 * rgba[i + 1]! + 0.0722 * rgba[i + 2]!));
+    }
+  }
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      let r = 0, g = 0, b = 0;
+      for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
+        const i = ((2 * y + dy) * width + 2 * x + dx) * 4;
+        r += rgba[i]!; g += rgba[i + 1]!; b += rgba[i + 2]!;
+      }
+      r /= 4; g /= 4; b /= 4;
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      planes[u0 + y * cw + x] = Math.round(128 + (224 / 255) * ((b - luma) / 1.8556));
+      planes[v0 + y * cw + x] = Math.round(128 + (224 / 255) * ((r - luma) / 1.5748));
+    }
+  }
+  return new VideoFrame(planes, {
+    format: 'I420', codedWidth: width, codedHeight: height, timestamp, duration,
+    colorSpace: { primaries: 'bt709', transfer: 'bt709', matrix: 'bt709', fullRange: false },
+  });
+}
+
 async function movieBegin(width: number, height: number, fps: number): Promise<{ codec: string }> {
   if (typeof VideoEncoder === 'undefined') throw new Error('This browser has no WebCodecs VideoEncoder, which render-movie encodes with.');
   // (VP9 and VP8 want even sides)
@@ -630,7 +671,7 @@ finally:
     const png = Uint8Array.from(binary, (c) => c.charCodeAt(0));
     const bitmap = await createImageBitmap(new Blob([png as BlobPart], { type: 'image/png' }));
     const at = (film.count * 1_000_000) / film.fps;
-    const frame = new VideoFrame(bitmap, { timestamp: at, duration: 1_000_000 / film.fps });
+    const frame = videoFrameOf(bitmap, film.width, film.height, at, 1_000_000 / film.fps);
     film.encoder.encode(frame, { keyFrame: film.count % Math.max(1, Math.round(film.fps * 2)) === 0 });
     frame.close();
     bitmap.close();
@@ -643,6 +684,34 @@ finally:
   return { encoded: film.count, timing: { executeMs: executeMs / per, stageMs: mean((t) => t.stageMs), applyMs: mean((t) => t.applyMs), photoMs: mean((t) => t.photoMs), encodeMs: (performance.now() - encodeAt) / per } };
 }
 
+/**
+ * A FILM IS DONE WHEN IT PLAYS: the file is played here, in the browser that made it, before
+ * render-movie reports it written. A stream every decoder but Chrome's read (full-range VP9) was
+ * reported done and the game's boot screen skipped it in silence.
+ */
+async function assertPlayable(bytes: Uint8Array): Promise<void> {
+  const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'video/webm' }));
+  const video = document.createElement('video');
+  video.muted = true;
+  video.src = url;
+  try {
+    await video.play();
+    const deadline = performance.now() + 10_000;
+    while (video.currentTime < Math.min(0.5, (video.duration || 1) / 2) && !video.ended) {
+      if (video.error) break;
+      if (performance.now() > deadline) throw new Error('the film did not start playing within 10 s');
+      await new Promise((done) => setTimeout(done, 50));
+    }
+    if (video.error) throw new Error(video.error.message || `media error ${video.error.code}`);
+  } catch (thrown) {
+    throw new Error(`render-movie wrote a film this browser cannot play: ${thrown instanceof Error ? thrown.message : String(thrown)}`);
+  } finally {
+    video.pause();
+    video.removeAttribute('src');
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function movieEnd(transferId: string): Promise<{ bytes: number; frames: number; codec: string }> {
   const film = movie;
   if (!film) throw new Error('No film is being rendered.');
@@ -651,6 +720,7 @@ async function movieEnd(transferId: string): Promise<{ bytes: number; frames: nu
   film.encoder.close();
   if (film.error) throw new Error(`The video encoder failed: ${film.error}`);
   const bytes = writeWebm({ codec: film.codec, width: film.width, height: film.height, durationMs: (film.count * 1000) / film.fps }, film.frames);
+  await assertPlayable(bytes);
   const posted = await fetch(`/__editor/blender-file?id=${encodeURIComponent(transferId)}`, {
     method: 'POST', headers: { 'content-type': 'video/webm' }, body: new Blob([bytes as BlobPart]),
   });
