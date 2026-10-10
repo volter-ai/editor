@@ -10,6 +10,7 @@ import {
   modelPlayAutoplay,
   modelPlayClock,
   modelPlayGeneration,
+  modelPlayStart,
   modelPlaying,
   restartModelPlay,
   setModelPlayAutoplay,
@@ -17,6 +18,7 @@ import {
   setModelPlayPaused,
   setModelPlaying,
   setModelPlaySpeed,
+  setModelPlayStart,
   stepModelPlay,
   subscribeModelPlay,
   subscribeModelPlayClock,
@@ -130,6 +132,8 @@ export function start(): () => void {
       autoplay: modelPlayAutoplay,
       setAutoplay: setModelPlayAutoplay,
       armAutoplay: armModelPlayAutoplay,
+      start: modelPlayStart,
+      setStart: setModelPlayStart,
       // NO STAGE, SO NO RUNNER, and until 2026-10-06 the document turned Play off and wrote the
       // reason to the console: Play flicked on and off with nothing said where anyone looks.
       // Now the run stands with its failure — the Game panel draws it, the log records it.

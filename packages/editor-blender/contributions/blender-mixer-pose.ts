@@ -7,8 +7,10 @@
  *   quaternion and scale tracks. Keys, handles, easing, extrapolation and modifiers are therefore
  *   Blender's at every frame; between frames three.js interpolates (linear, slerp).
  * - A POSE is the layers the stack asks for (the NLA's strips and the active action, or what a
- *   game set), each an `AnimationAction` on the armature's `AnimationMixer` at the frame and
- *   influence the stack names. The mixer blends them.
+ *   game set), each an `AnimationAction` bound to the armature's rig on the scene's one
+ *   `AnimationMixer` (`blender-scene-mixer.ts`) at the frame and influence the stack names. The
+ *   mixer blends them, with every other armature's and the movie's, in one evaluation: `place`
+ *   sets the actions, the scene evaluates, `settle` turns the constraints and reads the pose.
  * - What the mixer does not do on its own is filled in here:
  *   - REPLACE OVER REPLACE. A layer replaces what is under it only for the bones it animates, at
  *     its influence: a bone's lower layer is weighted by `1 - influence` of every higher layer that
@@ -129,9 +131,11 @@ function basisOf(channels: NonNullable<BlenderArmatureBone['channels']> | undefi
 const label = (type: string): string =>
   type.toLowerCase().split('_').map((word) => (word === 'ik' ? 'IK' : word[0]!.toUpperCase() + word.slice(1))).join(' ');
 
-/** One armature's bones, posed by the stack on its own `AnimationMixer`. */
+/** One armature's bones, posed by the stack: its actions on the scene's mixer, bound to its rig. */
 export class MixerPose {
   readonly mixer: THREE.AnimationMixer;
+  /** Whether the mixer is the scene's (shared with the other armatures and the movie) or its own. */
+  readonly #shared: boolean;
   #armature: BlenderArmature | null = null;
   #bones: readonly BlenderArmatureBone[] = [];
   /** Each bone's local transform with no action on it: its rest, then its own channels. */
@@ -144,8 +148,10 @@ export class MixerPose {
   #warned = new Set<string>();
   readonly warnings: string[] = [];
 
-  constructor(readonly rig: ArmatureRig) {
-    this.mixer = new THREE.AnimationMixer(rig.object);
+  /** `mixer`: the scene's (`sceneMixer(view).mixer`); absent, the armature gets one of its own. */
+  constructor(readonly rig: ArmatureRig, mixer?: THREE.AnimationMixer) {
+    this.mixer = mixer ?? new THREE.AnimationMixer(rig.object);
+    this.#shared = !!mixer;
   }
 
   /** Take the frame's facts for this armature (its bones' rest, channels and constraints). */
@@ -249,10 +255,19 @@ export class MixerPose {
   }
 
   /**
-   * Pose the bones from these layers (bottom to top) and the constraints. Answers each bone's
-   * pose in the armature's space, for the fidelity check.
+   * Pose the bones from these layers (bottom to top) and the constraints, at once: `place`, the
+   * mixer's evaluation, `settle`. Answers each bone's pose in the armature's space. On the scene's
+   * mixer, place every armature first and evaluate once (`blender-scene-mixer.ts`).
    */
   apply(layers: readonly MixerLayer[], world: ConstraintWorld): Map<string, THREE.Matrix4> {
+    this.place(layers);
+    this.mixer.update(0);
+    return this.settle(world);
+  }
+
+  /** SET THE ACTIONS for these layers (bottom to top): their times and weights; nothing moves until
+   *  the mixer evaluates. The actions no layer uses now stop. */
+  place(layers: readonly MixerLayer[]): void {
     const used = new Set<THREE.AnimationAction>();
     layers.forEach((layer, index) => {
       const influence = Math.max(0, Math.min(1, layer.influence));
@@ -291,7 +306,10 @@ export class MixerPose {
       }
     });
     for (const action of this.#actions.values()) if (!used.has(action) && action.isScheduled()) action.stop();
-    this.mixer.update(0);
+  }
+
+  /** AFTER THE MIXER: the constraints, then each bone's pose in the armature's space. */
+  settle(world: ConstraintWorld): Map<string, THREE.Matrix4> {
     this.rig.object.updateMatrixWorld(true);
     this.#constraints(world);
     return this.#poses();
@@ -353,9 +371,14 @@ export class MixerPose {
     return poses;
   }
 
+  /** Its actions off the mixer (only its own: on the scene's, the others play on). */
   dispose(): void {
-    this.mixer.stopAllAction();
-    for (const clip of this.#actions.keys()) this.mixer.uncacheClip(clip);
+    for (const [clip, action] of this.#actions) {
+      action.stop();
+      this.mixer.uncacheAction(clip, this.rig.object);
+      this.mixer.uncacheClip(clip);
+    }
+    if (!this.#shared) this.mixer.stopAllAction();
     this.#actions.clear();
   }
 }

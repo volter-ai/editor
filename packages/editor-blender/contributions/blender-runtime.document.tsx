@@ -27,7 +27,12 @@
 // How the `model` stage this document builds behaves (its starting presentation).
 import './blender-properties-context';
 import { liveAnimation, setLiveAnimation } from '../src/play-live';
+import { decodeFrameFile } from '../web-export/frame-codec';
+import { LEVEL_MANIFEST_FILE, levelDir, WEB_EXPORT_CLIPS_FILE, WEB_EXPORT_FRAME_FILE, WEB_EXPORT_MOVIE_FILE, type LevelManifest, type WebExportClips } from '../web-export/web-export-files';
+import { fileHash } from './blender-export.command';
+import type { BlenderSceneMovie } from '@volter/blender-engine/browser/rna';
 import { blenderViewFieldOfView } from '../src/presentation';
+import { readBlenderDisplaySettings } from './blender-display-settings';
 import {
   type BlenderRuntimeView,
   blenderModelView,
@@ -64,8 +69,6 @@ import * as THREE from 'three';
 import {
   bindModelDocument,
   blenderExecute,
-  blenderRna,
-  blenderRnaContext,
   subscribeBlenderRna,
   blenderViewShading,
   openModelDocumentBlend,
@@ -452,29 +455,8 @@ function BlenderModelViewport(props: ToolContributionProps) {
     };
     const read = async () => {
       const mine = ++revision;
-      const context = await blenderRnaContext();
-      if (!context) return;
-      const [settings, displaySettings] = await Promise.all([
-        blenderRna(`${context.scene}.view_settings`),
-        blenderRna(`${context.scene}.display_settings`),
-      ]);
-      if (cancelled || mine !== revision || settings?.kind !== 'struct' || settings.type !== 'ColorManagedViewSettings') return;
-      if (displaySettings?.kind === 'struct') {
-        const device = displaySettings.groups.flatMap(group => group.rows).find(row => row.identifier === 'display_device')?.value;
-        if (typeof device === 'string' && device !== 'sRGB')
-          throw new Error(`Blender display device ${device} has no browser display processor yet`);
-      }
-      const rows = settings.groups.flatMap(group => group.rows);
-      const transform = rows.find(row => row.identifier === 'view_transform')?.value;
-      const stops = rows.find(row => row.identifier === 'exposure')?.value;
-      const look = rows.find(row => row.identifier === 'look')?.value;
-      const gamma = rows.find(row => row.identifier === 'gamma')?.value;
-      const exposure = typeof stops === 'number' ? 2 ** stops : 1;
-      const display = {
-        transform: typeof transform === 'string' ? transform : 'AgX',
-        look: typeof look === 'string' ? look : 'None',
-        exposure, gamma: typeof gamma === 'number' ? gamma : 1,
-      };
+      const display = await readBlenderDisplaySettings();
+      if (cancelled || mine !== revision || !display) return;
       const key = JSON.stringify(display);
       if (applied?.key === key) return;
       const resolved = await createBlenderDisplayTransform(display);
@@ -963,7 +945,7 @@ function BlenderViewportArea({
             const clip = await blenderActionClip({ object: armature, action, summary: false });
             if (clip === null) throw new Error("Blender's session is not started");
             return clip;
-          }, cache, () => blenderSceneMovie());
+          }, cache, { warn: (said) => editorHost().console.warn(said, 'blender-animation'), readMovie: () => blenderSceneMovie() });
         } catch (error) {
           editorHost().console.error(`The game's animation could not be set up, so the game starts without it: ${error instanceof Error ? error.message : String(error)}`, 'blender-animation');
         }
@@ -998,6 +980,36 @@ function BlenderViewportArea({
           anim.prefetch();
         }
         setLiveAnimation(animation);
+        /** A LEVEL'S COOK, read and decoded once per run (`play.preload` reads it ahead of its load). */
+        const cooks = new Map<string, Promise<{ manifest: LevelManifest; frame: { session: string }; clips: WebExportClips; movie: BlenderSceneMovie | null }>>();
+        const readCook = (level: string) => {
+          let cook = cooks.get(level);
+          if (!cook) {
+            cook = (async () => {
+              const files = editorHost().files;
+              const dir = levelDir(level);
+              if (!(await files.exists(`${dir}/${LEVEL_MANIFEST_FILE}`)))
+                throw new Error(`There is no cooked level "${level}": cook it with \`cyclotron levels cook ${level}\`.`);
+              const manifest = JSON.parse(await files.read(`${dir}/${LEVEL_MANIFEST_FILE}`)) as LevelManifest;
+              if ((await fileHash(manifest.blend).catch(() => null)) !== manifest.hash)
+                editorHost().console.warn(`Level "${level}" was cooked before ${manifest.blend} last changed, and plays as it was then; \`cyclotron levels cook ${level}\` cooks it again.`, 'model-play');
+              const [frameBytes, clipsText, movieText] = await Promise.all([
+                files.readBytes(`${dir}/${WEB_EXPORT_FRAME_FILE}`),
+                files.read(`${dir}/${WEB_EXPORT_CLIPS_FILE}`),
+                files.read(`${dir}/${WEB_EXPORT_MOVIE_FILE}`).catch(() => 'null'),
+              ]);
+              return {
+                manifest,
+                frame: decodeFrameFile(frameBytes) as { session: string },
+                clips: JSON.parse(clipsText) as WebExportClips,
+                movie: JSON.parse(movieText) as BlenderSceneMovie | null,
+              };
+            })();
+            cooks.set(level, cook);
+            cook.catch(() => { if (cooks.get(level) === cook) cooks.delete(level); });
+          }
+          return cook;
+        };
         stopScript = documentPlayExtension('model')?.run({
           ...(animation ? { animation } : {}),
           documentId: modelId,
@@ -1006,6 +1018,53 @@ function BlenderViewportArea({
           returning: () => { if (!stopped) playReturnRef.current?.(); },
           sourcePath: blend,
           root: view.root,
+          // A LEVEL (`play.load`, docs/LEVELS.md), from its cook: its frame replaces the copy's scene
+          // in this same view (the stage, the rendered draw and `root` stay), its clips and movie
+          // become the run's animation
+          // PLAY FROM HERE: the 3D cursor and the editing camera, in the copy's (Blender's) space
+          startAt: () => {
+            const m = (view.snapshot() as { cursor?: readonly (readonly number[])[] } | null)?.cursor;
+            const cursor = m ? [m[0]![3]!, m[1]![3]!, m[2]![3]!] as const : null;
+            const editing = viewportStages().find(one => one.documentId === modelId)?.rig().drawCamera() as THREE.Camera | undefined;
+            let camera: { position: [number, number, number]; target: [number, number, number] } | null = null;
+            if (editing) {
+              editing.updateWorldMatrix(true, false);
+              view.root.updateWorldMatrix(true, false);
+              const at = editing.getWorldPosition(new THREE.Vector3());
+              const ahead = at.clone().add(editing.getWorldDirection(new THREE.Vector3()).multiplyScalar(10));
+              const p = view.root.worldToLocal(at.clone()), t = view.root.worldToLocal(ahead);
+              camera = { position: [p.x, p.y, p.z], target: [t.x, t.y, t.z] };
+            }
+            return { cursor, camera };
+          },
+          preloadLevel: async (level) => { await readCook(level); },
+          loadLevel: async (level) => {
+            const files = editorHost().files;
+            const { manifest, frame, clips, movie } = await readCook(level);
+            cooks.delete(level);
+            if (stopped) throw new Error('Play stopped while the level was loading.');
+            // ITS OWN SESSION: the view takes it as a new scene, never as an older frame of this one
+            frame.session = `level:${level}:${Date.now()}`;
+            const previous = animation;
+            if (liveAnimation() === previous) setLiveAnimation(null);
+            previous?.dispose();
+            animation = null;
+            view.applyFrame(frame);
+            await view.prepareRendered(stage.rig().drawCamera(), 'render');
+            const next = playAnimation(view, async (armature, action) => {
+              const entry = clips.armatures[armature]?.[action];
+              if (typeof entry === 'number') return clips.clips[entry] ?? null;
+              throw new Error(typeof entry === 'string' ? entry : `${armature} / ${action} was not cooked with level "${level}"`);
+            }, new Map(), { warn: (said) => editorHost().console.warn(said, 'blender-animation'), readMovie: async () => movie });
+            const { failed } = await next.prepare();
+            if (failed.length > 0) editorHost().console.warn(`Level "${level}" started without ${failed.length} clip(s): ${failed.join('; ')}`, 'blender-animation');
+            if (stopped) { next.dispose(); throw new Error('Play stopped while the level was loading.'); }
+            animation = next;
+            setLiveAnimation(next);
+            // the level's own play script, beside its .blend, when it has one
+            const script = manifest.blend.replace(/\.blend$/i, '') + '.play.ts';
+            return { animation: next, script: (await files.exists(script)) ? script : null };
+          },
           camera: () => stage.rig().drawCamera(),
           editingCamera: () => viewportStages().find(one => one.documentId === modelId)?.rig().drawCamera() ?? stage.rig().drawCamera(),
           onFrame: (fn) => stage.onFrame(fn),
@@ -1155,8 +1214,9 @@ function BlenderViewportArea({
     if (!documentId || !main) return;
     let live = true;
     void blenderSkin.sync(view, {
-      clip: (armature) => blenderActionClip({ object: armature }),
+      clip: (armature) => blenderActionClip(armature === null ? {} : { object: armature }),
       bake: (armature, action) => blenderActionClip({ object: armature, action, summary: false }),
+      movie: () => blenderSceneMovie(),
     }).catch((thrown: unknown) => {
       if (live) editorHost().console.warn(`This file's action could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
     });

@@ -657,7 +657,8 @@ export const frameSchema = z
       .optional(),
   })
   .strict();
-type Frame = z.infer<typeof frameSchema>;
+/** One presented frame, as `applyFrame` takes it (`frameSchema`). */
+export type Frame = z.infer<typeof frameSchema>;
 
 /** `BKE_scene_find_marker_name`: the list walked from both ends at once, the front one asked
  *  first, so of several markers on one frame the answer is not simply the first. */
@@ -995,6 +996,16 @@ export class BlenderRuntimeView {
     };
   }
 
+  #playbackCamera: string | null = null;
+  #playbackCameraData: Record<string, unknown> | null = null;
+  /** The camera the scene's playback shows at the Timeline's frame (the markers' cut), and how it
+   *  stands there (its matrix and projection as the Timeline's mixer posed it); null: the scene's
+   *  own camera, as Blender last evaluated it. */
+  setPlaybackCamera(name: string | null, data: Record<string, unknown> | null = null): void {
+    this.#playbackCamera = name;
+    this.#playbackCameraData = name === null ? null : data;
+  }
+
   /**
    * THE CAMERA A CAMERA VIEW ENTERED NOW WOULD LOOK THROUGH, as `view_camera_exec` picks it:
    * the scene's camera, else the active object when it is a camera, else the view layer's first
@@ -1004,6 +1015,11 @@ export class BlenderRuntimeView {
     const frame = this.frame;
     const view = frame?.camera_view;
     if (!frame || !view) return null;
+    // WHILE THE TIMELINE PLAYS OR SCRUBS, the camera of the marker at that frame (Blender switches
+    // `scene.camera` at bound markers as it plays; the frame here is the one it last evaluated)
+    // (described by the Timeline itself when Blender's last frame did not carry it: a present ships
+    // only what moved)
+    if (this.#playbackCamera !== null && (this.#playbackCameraData || frame.cameras[this.#playbackCamera])) return this.#playbackCamera;
     if (view.scene_camera !== null && frame.cameras[view.scene_camera]) return view.scene_camera;
     if (frame.active !== null && frame.cameras[frame.active]) return frame.active;
     return view.view_layer_cameras.find((name) => frame.cameras[name]) ?? null;
@@ -1037,7 +1053,11 @@ export class BlenderRuntimeView {
     offset: readonly [number, number],
   ): BlenderCameraView | null {
     const frame = this.frame;
-    const data = cameraDataSchema.safeParse(frame?.cameras[camera]);
+    const evaluated = frame?.cameras[camera];
+    // (while the Timeline plays, the camera as its mixer posed it at that frame)
+    const posed = camera === this.#playbackCamera && this.#playbackCameraData
+      ? { ...((evaluated ?? {}) as Record<string, unknown>), ...this.#playbackCameraData } : evaluated;
+    const data = cameraDataSchema.safeParse(posed);
     if (!frame?.camera_view || !data.success) return null;
     return blenderCameraView(data.data, this.root.matrix, region, zoom, offset, frame.camera_view.aspect);
   }
@@ -1361,6 +1381,29 @@ export class BlenderRuntimeView {
     this.workbench = on;
     this.applyWorkbench();
     presenterChanged();
+  }
+
+  /**
+   * THE AUTHORED MATERIALS, whatever the viewport shows: `run` sees every presented mesh dressed in the
+   * materials its object's slots name (what Material Preview and Rendered show), and each gets back what
+   * it wore after. An export writes the model's own materials in Solid shading too (`blender-export-gltf`).
+   */
+  async withAuthoredMaterials<T>(run: () => Promise<T>): Promise<T> {
+    const worn = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
+    for (const obj of this.frame?.objects ?? []) {
+      if (obj.mesh === null || obj.volume) continue;
+      const mesh = this.objects.get(obj.id) as THREE.Mesh | undefined;
+      if (!mesh?.isMesh) continue;
+      const slots: readonly (string | null)[] = obj.materials.length ? obj.materials : [null];
+      const authored = slots.map((id) => (id === null ? this.fallback : (this.materials.get(id) ?? this.fallback)));
+      worn.set(mesh, mesh.material);
+      mesh.material = obj.materials.length ? authored : authored[0]!;
+    }
+    try {
+      return await run();
+    } finally {
+      for (const [mesh, material] of worn) mesh.material = material;
+    }
   }
 
   /** Each surface's material for the state: authored, or Solid's, derived from the frame every
@@ -2520,6 +2563,18 @@ export class BlenderRuntimeView {
         detached.root.removeFromParent();
       },
     };
+  }
+
+  /**
+   * EVERYTHING A GAME NEEDS TO PLAY THIS MODEL WITHOUT BLENDER: the frame `detach` builds its copy
+   * from, as one self-contained value of plain data and typed arrays — every mesh's resident
+   * geometry with its skin and draw-vertex map, the armatures with their NLA, the materials and
+   * their node graphs, every image's bytes, the lights, cameras and World. A web export writes it
+   * (`cyclotron export web`), and its page builds the game's copy with `applyFrame`, as `detach`
+   * does. The caller owns it; nothing in it refers back to this view.
+   */
+  exportFrame(): Frame {
+    return this.fullFrame({ sourceVertices: true });
   }
 
   captureSnapshot() {

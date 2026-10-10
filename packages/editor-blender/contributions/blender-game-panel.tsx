@@ -160,6 +160,8 @@ function gameState(documentId: string): unknown {
     clock: found?.transport?.clock(documentId) ?? STILL,
     speeds: found?.transport?.speeds ?? [],
     autoplay: autoplayState(documentId),
+    // WHERE PLAY BEGINS (`play.starts`): the chosen start, null for the game's own beginning
+    start: found?.transport?.start?.(documentId) ?? null,
   };
 }
 
@@ -332,6 +334,20 @@ registerViewVerbs({
         const why = on ? autoplayWhy(found.playing(documentId), transport.clock(documentId), transport.autoplay?.(documentId) ?? NO_BOT) : null;
         if (why !== null) throw new Error(why);
         transport.setAutoplay(documentId, on, 'cli', on ? { behavior, limit } : undefined);
+        return gameState(documentId);
+      },
+    },
+    {
+      // WHERE PLAY BEGINS: one of the game's own starts (`play.starts`), kept across Play and
+      // Restart until changed; `off` (or no name) is the game's own beginning.
+      id: 'start',
+      run: (args) => {
+        const documentId = verbDocument(args);
+        const raw = args?.['name'] ?? args?.['start'];
+        const name = raw === undefined || raw === null || raw === '' || raw === 'off' ? null : String(raw);
+        const { transport } = verbExtension();
+        if (transport.setStart === undefined) throw new Error('The installed Play tool has no starts; update @volter/play.');
+        transport.setStart(documentId, name);
         return gameState(documentId);
       },
     },

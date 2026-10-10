@@ -5363,7 +5363,7 @@ def _slot_handle(action, owner, prefix, slot=None):
     slots = list(getattr(action, "slots", ()))
     if not slots:
         return None
-    kind = "OBJECT" if prefix == "OB" else "CAMERA"
+    kind = {"OB": "OBJECT", "CA": "CAMERA", "NT": "NODETREE", "KE": "KEY"}.get(prefix, "OBJECT")
     named = next((one for one in slots if getattr(one, "identifier", "") == prefix + owner.name), None)
     if named is not None:
         return named.handle
@@ -5506,6 +5506,119 @@ def _sample_camera(data, first, last):
     return {"start": first, "end": last, **{prop: _column(column, 1) for prop, column in columns.items()}}
 
 
+_MATERIAL_INPUTS = {"Base Color": 4, "Emission Color": 4, "Emission Strength": 1, "Alpha": 1}
+
+
+def _sample_material(material, first, last):
+    """A MATERIAL'S KEYED INPUTS AS THREE.JS PLAYS THEM (`docs/SCENE-ANIMATION.md` step 5): its
+    Principled BSDF's Base Color, Emission (colour times strength) and Alpha at every scene frame,
+    each by Blender's evaluation of the action its node tree shows there; only the ones a curve keys.
+    None when nothing keys them."""
+    tree = getattr(material, "node_tree", None)
+    adt = getattr(tree, "animation_data", None)
+    if adt is None:
+        return None
+    bsdf = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None:
+        return None
+    index = {}
+    for i, socket in enumerate(bsdf.inputs):
+        index.setdefault(socket.name, i)
+    paths = {}
+    own = {}
+    for name, size in _MATERIAL_INPUTS.items():
+        if name not in index:
+            continue
+        paths['nodes["%s"].inputs[%d].default_value' % (bsdf.name, index[name])] = name
+        value = bsdf.inputs[index[name]].default_value
+        own[name] = [float(v) for v in value] if size > 1 else [float(value)]
+    keyed = set()
+    color, emissive, opacity = array.array("f"), array.array("f"), array.array("f")
+    curves_of = {}
+    for frame in range(first, last + 1):
+        action, at = _owner_action_at(adt, frame)
+        values = {name: list(value) for name, value in own.items()}
+        if action is not None:
+            curves = curves_of.get(action.name)
+            if curves is None:
+                handle = _slot_handle(action, tree, "NT", getattr(adt, "action_slot", None) if action == adt.action else None)
+                curves = curves_of[action.name] = _action_channelbag(action, handle)[0]
+            for fcurve in curves:
+                name = paths.get(fcurve.data_path)
+                if name is not None and fcurve.array_index < len(values[name]):
+                    values[name][fcurve.array_index] = fcurve.evaluate(at)
+                    keyed.add(name)
+        base = values.get("Base Color", [1.0, 1.0, 1.0, 1.0])
+        color.extend(base[:3])
+        glow = values.get("Emission Color", [0.0, 0.0, 0.0, 1.0])
+        strength = values.get("Emission Strength", [0.0])[0]
+        emissive.extend((glow[0] * strength, glow[1] * strength, glow[2] * strength))
+        opacity.append(values.get("Alpha", [1.0])[0])
+    if not keyed:
+        return None
+    out = {"start": first, "end": last}
+    if "Base Color" in keyed:
+        out["color"] = _column(color, 3)
+    if keyed & {"Emission Color", "Emission Strength"}:
+        out["emissive"] = _column(emissive, 3)
+    if "Alpha" in keyed:
+        out["opacity"] = _column(opacity, 1)
+    return out
+
+
+def _sample_shapes(obj, first, last, depsgraph):
+    """A MESH'S KEYED SHAPE KEYS AS THREE.JS PLAYS THEM (morph targets, step 5): each relative key a
+    curve keys, its offset from the key it is relative to at every vertex of the mesh, its value at
+    every scene frame, and the value the presented geometry already holds. `mapped` is False when the
+    mesh's modifiers change its vertices (a Subdivision, a Mirror), so the offsets cannot follow
+    them. None when no key is keyed."""
+    keys = getattr(getattr(obj, "data", None), "shape_keys", None)
+    if keys is None or not keys.use_relative or len(keys.key_blocks) < 2:
+        return None
+    adt = keys.animation_data
+    if adt is None:
+        return None
+    blocks = list(keys.key_blocks)[1:]
+    path_of = {'key_blocks["%s"].value' % block.name: block.name for block in blocks}
+    values = {block.name: array.array("f") for block in blocks}
+    keyed = set()
+    curves_of = {}
+    for frame in range(first, last + 1):
+        action, at = _owner_action_at(adt, frame)
+        now = {block.name: float(block.value) for block in blocks}
+        if action is not None:
+            curves = curves_of.get(action.name)
+            if curves is None:
+                handle = _slot_handle(action, keys, "KE", getattr(adt, "action_slot", None) if action == adt.action else None)
+                curves = curves_of[action.name] = _action_channelbag(action, handle)[0]
+            for fcurve in curves:
+                name = path_of.get(fcurve.data_path)
+                if name is not None:
+                    now[name] = fcurve.evaluate(at)
+                    keyed.add(name)
+        for name, value in now.items():
+            values[name].append(value)
+    if not keyed:
+        return None
+    count = len(obj.data.vertices)
+    try:
+        mapped = len(obj.evaluated_get(depsgraph).data.vertices) == count
+    except Exception:
+        mapped = False
+    out = []
+    for block in blocks:
+        if block.name not in keyed:
+            continue
+        own = array.array("f", [0.0]) * (3 * count)
+        base = array.array("f", [0.0]) * (3 * count)
+        block.data.foreach_get("co", own)
+        (block.relative_key or keys.reference_key).data.foreach_get("co", base)
+        delta = array.array("f", (a - b for a, b in zip(own, base)))
+        out.append({"name": block.name, "delta": {"count": count, "base64": base64.b64encode(delta.tobytes()).decode("ascii")},
+                    "values": _column(values[block.name], 1), "current": float(block.value)})
+    return {"object": obj.name, "start": first, "end": last, "vertices": count, "mapped": mapped, "keys": out}
+
+
 def rna_scene_movie():
     """THE SCENE'S OWN ANIMATION, AS A GAME PLAYS IT (a cutscene, `blender-play-movie.ts`): the
     scene's range, rate and camera, its markers with the camera each is bound to (the cuts
@@ -5598,7 +5711,24 @@ def rna_scene_movie():
             **({"camera": camera} if camera is not None else {}),
             **({"unsupported": unsupported} if unsupported else {}),
         })
+    # MATERIALS AND SHAPE KEYS (step 5): a material's keyed inputs, a mesh's keyed shape keys
+    first, last = int(scene.frame_start), int(scene.frame_end)
+    materials = []
+    seen = set()
+    for obj in view_layer.objects:
+        for slot in getattr(obj, "material_slots", ()):
+            material = slot.material
+            if material is None or material.name in seen:
+                continue
+            seen.add(material.name)
+            sampled = _sample_material(material, first, last)
+            if sampled is not None:
+                materials.append({"name": material.name, **sampled})
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    shapes = [one for one in (_sample_shapes(obj, first, last, depsgraph) for obj in view_layer.objects if obj.type == "MESH") if one]
     return {
+        "materials": materials,
+        "shapes": shapes,
         "scene": {"name": scene.name, "start": int(scene.frame_start), "end": int(scene.frame_end), "fps": fps,
                   "current": int(scene.frame_current),
                   "camera": scene.camera.name if scene.camera is not None else None},

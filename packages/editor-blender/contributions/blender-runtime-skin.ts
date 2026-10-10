@@ -13,7 +13,8 @@
  * exported vertex (`bpy_web_export.cc` `write_skin`), the frame names every bone's
  * rest, channels, constraints and pose and each armature's NLA stack, and the presenter
  * builds the skeletons (`blender-runtime-skeleton.ts`). This director poses EVERY armature
- * at the scene frame on three.js's own `AnimationMixer` (`blender-mixer-pose.ts`): each action
+ * at the scene frame on the scene's one `AnimationMixer` (`blender-scene-mixer.ts`, with the
+ * movie's objects and cameras: one evaluation a frame) through `blender-mixer-pose.ts`: each action
  * sampled once by Blender, its NLA tracks and active action placed as Blender places them
  * (`blender-pose.ts`) and blended by the mixer, and its Damped Track constraints. Every scrub
  * and every played frame costs ZERO calls into Blender; an action is baked again exactly when
@@ -39,19 +40,27 @@
  * GEOMETRY per frame (shape keys, a Displace or Cloth modifier) does not follow the bones.
  */
 
-import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
+import type { BlenderActionClip, BlenderSceneMovie } from '@volter/blender-engine/browser/rna';
 import type { BlenderArmature } from '@volter/blender-engine/browser/three/blender-runtime-armature';
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import { editorHost, type StageTransportHandle } from '@volter/sdk/host';
 import { blenderRnaSet } from '../host/blender-runtime-host';
+import { remedy } from './blender-remedy';
 import { actionLayer, nlaLayers, type PoseLayer } from './blender-pose';
 import { MixerPose, mixerClip, poseDivergence, type MixerClip } from './blender-mixer-pose';
+import { playMovie, type PlayMovie } from './blender-play-movie';
+import { sceneMixer } from './blender-scene-mixer';
+import { invalidateStages } from '@volter/sdk/kit/stage-invalidation';
 
 /** How the director reads the engine: the Timeline's subject (its keys, the scene's range) and
  *  one action baked for one armature. */
 export interface SkinReader {
-  clip(armature: string): Promise<BlenderActionClip | null>;
+  /** The scene's clock and range, and `armature`'s action when there is one (null: the scene alone). */
+  clip(armature: string | null): Promise<BlenderActionClip | null>;
   bake(armature: string, action: string): Promise<BlenderActionClip | null>;
+  /** The scene's movie: every animated object and camera sampled at every scene frame, and the
+   *  markers' camera cuts (`rna_scene_movie`, as a game's cutscene reads it). */
+  movie?(): Promise<BlenderSceneMovie | null>;
 }
 
 /** An armature's layers at a scene frame: its NLA, then its active action over them. */
@@ -68,17 +77,7 @@ export function sceneLayers(armature: BlenderArmature, frame: number,
   return stack;
 }
 
-/** What to do about what plays only in Blender, by kind. */
-export function remedy(unsupported: readonly string[]): string {
-  const out: string[] = [];
-  if (unsupported.some((thing) => thing.includes(' constraint ') || thing.includes('drivers')))
-    out.push('Bake a constraint or driver into the action (Pose ▸ Animation ▸ Bake Action, Visual Keying), or aim with a Damped Track.');
-  if (unsupported.some((thing) => thing.includes('curves on ')))
-    out.push("Key the motion on a bone (the root bone) instead of the armature object, or move the object from the game.");
-  if (unsupported.some((thing) => thing.includes('interpolation') || thing.includes(' modifier')))
-    out.push('Use Bezier, Linear or Constant keys and the Cycles modifier only, or bake the curves (Key ▸ Bake Keyframes).');
-  return out.length ? ` ${out.join(' ')}` : '';
-}
+export { remedy } from './blender-remedy';
 
 /** True when an armature has anything to evaluate: an action, or NLA strips. */
 export function animated(armature: BlenderArmature): boolean {
@@ -96,6 +95,13 @@ export class BlenderSkinDirector {
   /** The presented view whose skeletons are posed (`sync`). */
   #view: BlenderRuntimeView | null = null;
   #reader: SkinReader | null = null;
+  /** THE SCENE'S MOVIE on the document's view (`docs/SCENE-ANIMATION.md`, step 2): its objects and
+   *  cameras posed at every Timeline frame beside the armatures, and its camera cuts. */
+  #movie: PlayMovie | null = null;
+  #movieKey: string | null = null;
+  #moviePosed: number | null = null;
+  /** What the last movie read held (null before one): said in `state()`, so an empty movie says why. */
+  #movieRead: { objects: number; materials: number; shapes: number } | null = null;
   /** The Timeline's subject: the armature its keys and header describe, and what its header was
    *  read for. Read again only when that changes. */
   #armature: string | null = null;
@@ -170,6 +176,12 @@ export class BlenderSkinDirector {
      *  They agree after a pause or a scrub-end, and they are deliberately
      *  allowed to differ in between. */
     blenderFrame: number | null;
+    /** The scene's movie on the Timeline: how many objects it moves, the camera it cuts to now, the
+     *  frame it last posed (null: posed by Blender, standing at its own frame), and the camera the
+     *  camera view looks through. */
+    movie: { objects: number; camera: string | null; posed: number | null; viewCamera: string | null } | null;
+    /** What the last read of the scene's movie held: objects moved, materials and meshes keyed. */
+    movieRead: { objects: number; materials: number; shapes: number } | null;
   } {
     const clip = this.#clip;
     return {
@@ -190,6 +202,8 @@ export class BlenderSkinDirector {
       warnings: this.#warnings,
       engineCalls: this.#engineCalls,
       blenderFrame: clip?.frameCurrent ?? null,
+      movieRead: this.#movieRead,
+      movie: this.#movie ? { objects: this.#movie.objects.length, camera: this.#moviePosed === null ? null : this.#movie.cameraAt(this.#moviePosed), posed: this.#moviePosed, viewCamera: this.#view?.cameraViewCamera() ?? null } : null,
     };
   }
 
@@ -239,7 +253,7 @@ export class BlenderSkinDirector {
         continue;
       }
       let pose = this.#poses.get(name);
-      if (!pose) this.#poses.set(name, pose = new MixerPose(rig));
+      if (!pose) this.#poses.set(name, pose = new MixerPose(rig, sceneMixer(view).mixer));
       pose.facts(entry);
     }
     // A BAKE IS GOOD FOR ITS ACTION'S REVISION; a new revision bakes it again when next needed.
@@ -252,12 +266,11 @@ export class BlenderSkinDirector {
     if (key !== this.#clipKey) {
       this.#clipKey = key;
       this.#armature = armature;
-      let clip: BlenderActionClip | null = null;
-      if (armature) {
-        this.#engineCalls++;
-        clip = await read.clip(armature);
-        if (clip?.action && clip.armature) this.#baked.set(`${clip.armature}\u0000${clip.action}`, { revision: facts.actions[clip.action] ?? null, clip: mixerClip(clip) });
-      }
+      // THE SCENE'S CLOCK IS READ WITH OR WITHOUT AN ARMATURE (`docs/SCENE-ANIMATION.md`, step 1): a
+      // film of keyed cameras and props has a range, a frame and markers, and the Timeline plays it
+      this.#engineCalls++;
+      const clip: BlenderActionClip | null = await read.clip(armature);
+      if (clip?.action && clip.armature) this.#baked.set(`${clip.armature}\u0000${clip.action}`, { revision: facts.actions[clip.action] ?? null, clip: mixerClip(clip) });
       const previous = this.#clip;
       const rangeChanged = clip?.frameStart !== previous?.frameStart ||
         clip?.frameEnd !== previous?.frameEnd || clip?.fps !== previous?.fps;
@@ -270,6 +283,17 @@ export class BlenderSkinDirector {
         this.#seeked = null;
         if (this.#transport && clip.fps > 0) this.#transport.seek(clip.frameCurrent / clip.fps);
       }
+    }
+    // THE MOVIE IS READ AGAIN WHEN AN ACTION OR THE SCENE'S CLOCK MOVED (a key, a marker, the range)
+    const movieKey = JSON.stringify([facts.actions, facts.clock, this.#clip?.frameStart, this.#clip?.frameEnd]);
+    if (read.movie && movieKey !== this.#movieKey) {
+      this.#movieKey = movieKey;
+      this.#engineCalls++;
+      const data = await read.movie();
+      this.#movieRead = data ? { objects: data.objects.length, materials: data.materials?.length ?? 0, shapes: data.shapes?.length ?? 0 } : null;
+      this.#movie?.dispose();
+      this.#movie = data && (data.objects.length || data.materials?.length || data.shapes?.length) ? playMovie(view, data, sceneMixer(view).mixer) : null;
+      for (const warning of this.#movie?.warnings ?? []) this.#say(`movie:${warning}`, warning);
     }
     this.#pose();
     this.#publish();
@@ -314,6 +338,17 @@ export class BlenderSkinDirector {
     const playing = this.#transport?.snapshot().playbackState === 'playing';
     const warnings: string[] = this.#clip?.reason ? [this.#clip.reason] : [];
     const world = { object: (name: string) => view.objectForBlenderName(name) };
+    const scene = sceneMixer(view);
+    // ONE FRAME, THREE STEPS (`blender-scene-mixer.ts`): every player places its actions, the scene's
+    // mixer evaluates them all at once, then each settles (constraints, the fidelity check).
+    // OBJECTS AND CAMERAS (an armature may ride on one): standing still at Blender's own frame the
+    // picture is Blender's, as for the armatures (an object moved by hand and not keyed stays where it
+    // was put until the frame changes, as in Blender), so the movie holds off the mixer there.
+    const movieHere = !!this.#movie && !(atBlender && !playing);
+    // (the drawn geometry is Blender's evaluation at its own frame: a shape key plays relative to it)
+    this.#movie?.place(movieHere ? frame : null, undefined, facts.frame);
+    this.#moviePosed = movieHere ? frame : null;
+    const placed: { name: string; pose: MixerPose; armature: BlenderArmature; layers: PoseLayer[]; check: boolean; unsupported: string[] }[] = [];
     for (const [name, pose] of this.#poses) {
       const armature = facts.armatures[name];
       if (!armature) continue;
@@ -326,13 +361,26 @@ export class BlenderSkinDirector {
       const stack = sceneLayers(armature, frame, (action) => this.#clipOf(name, action));
       for (const skipped of stack.skipped) this.#say(`skipped:${name}:${skipped}`, `${name}: ${skipped} plays only in Blender, not in the Timeline or a game.`);
       if (stack.waiting) continue;
-      if (atBlender && !playing) {
-        this.#check(name, pose, armature, stack.layers, world, unsupported);
-        view.skeletons.restorePose(name);
-        pose.rig.object.updateMatrixWorld(true);
-      } else {
-        pose.apply(stack.layers, world);
-      }
+      pose.place(stack.layers);
+      placed.push({ name, pose, armature, layers: stack.layers, check: atBlender && !playing, unsupported });
+    }
+    scene.evaluate();
+    this.#movie?.settle();
+    if (this.#movie) {
+      // THE CUT ALWAYS FOLLOWS THE MARKERS, at Blender's own frame too: Blender switches `scene.camera`
+      // at bound markers as it plays, which a frame written back to it does not do
+      const cut = this.#movie.cameraAt(frame);
+      view.setPlaybackCamera(cut, cut === null ? null : this.#movie.cameraData(cut));
+      // (a scrub that moved only objects and cameras asks the stage for the frame it now shows)
+      invalidateStages();
+    } else view.setPlaybackCamera(null);
+    for (const one of placed) {
+      const posed = one.pose.settle(world);
+      if (!one.check) continue;
+      // AT BLENDER'S OWN FRAME the picture is Blender's pose, and the evaluator's answer is checked against it
+      this.#check(one.name, posed, one.armature, one.unsupported);
+      view.skeletons.restorePose(one.name);
+      one.pose.rig.object.updateMatrixWorld(true);
     }
     this.#warnings = warnings;
   }
@@ -344,10 +392,9 @@ export class BlenderSkinDirector {
     return out;
   }
 
-  /** THE FIDELITY CHECK at Blender's own frame: the evaluator's pose against Blender's. */
-  #check(name: string, pose: MixerPose, armature: BlenderArmature, layers: readonly PoseLayer[],
-    world: { object(name: string): ReturnType<BlenderRuntimeView['objectForBlenderName']> }, unsupported: readonly string[]): void {
-    const off = poseDivergence(pose.apply(layers, world), armature);
+  /** THE FIDELITY CHECK at Blender's own frame: the evaluator's pose (as settled) against Blender's. */
+  #check(name: string, posed: ReadonlyMap<string, import('three').Matrix4>, armature: BlenderArmature, unsupported: readonly string[]): void {
+    const off = poseDivergence(posed, armature);
     if (!off) return;
     const frame = this.#clip?.frameCurrent ?? this.frame();
     const why = unsupported.length
@@ -510,6 +557,8 @@ export class BlenderSkinDirector {
     this.#seeked = null;
     for (const [name, pose] of this.#poses) { pose.dispose(); this.#view?.skeletons.restorePose(name); }
     this.#poses.clear();
+    this.#movie?.dispose();
+    this.#movie = null;
     this.#baked.clear();
     this.#armature = null;
     this.#clipKey = null;

@@ -30,6 +30,16 @@ export interface DocumentPlayStage {
    *  runner advances on the game's clock. Absent, the document lends no animation and rigged
    *  objects stand in their exported pose. */
   readonly animation?: DocumentPlayAnimation;
+  /** LOAD A LEVEL into `root` (`play.load`, `docs/LEVELS.md`): its cook's frame replaces what `root`
+   *  holds. The answer is the level's animation, which replaces `animation`, and the level's own
+   *  play script when it has one (a level brings its script, as a scene does in other engines),
+   *  which then replaces the running script. Absent, the document cannot load levels. */
+  readonly loadLevel?: (level: string) => Promise<{ readonly animation?: DocumentPlayAnimation; readonly script?: string | null }>;
+  /** WHERE THE PERSON IS LOOKING, for a start (`play.starts`, "play from here"): the 3D cursor and the
+   *  editing camera's position and aim, in the game's own space (`root`'s). */
+  readonly startAt?: () => { readonly cursor: readonly [number, number, number] | null; readonly camera: { readonly position: readonly [number, number, number]; readonly target: readonly [number, number, number] } | null };
+  /** Read a level's cook ahead of its load (`play.preload`), so the load only builds it. */
+  readonly preloadLevel?: (level: string) => Promise<void>;
 }
 export type DocumentPlayAnswer = { ok: true; armature: string } | { ok: false; why: string };
 
@@ -163,6 +173,16 @@ export interface DocumentPlayTransport {
    *  (`armed`); dropped if it offers none, or not the behaviour asked for. Absent, autoplay can
    *  only be switched while running. */
   armAutoplay?(documentId: string, armed: boolean, request?: DocumentPlayAutoplayRequest): void;
+  /** Where Play begins (`play.starts` in the play script): the chosen start, kept across Play and
+   *  Restart, and the starts the running script offers. Absent, the tool has no starts. */
+  start?(documentId: string): DocumentPlayStart;
+  /** Choose the start Play (and every Restart) begins at; null for the game's own beginning. */
+  setStart?(documentId: string, name: string | null): void;
+}
+/** WHERE A RUN STARTS: a game offers named starts, the editor keeps which one Play begins at. */
+export interface DocumentPlayStart {
+  readonly chosen: string | null;
+  readonly offered: readonly string[];
 }
 export interface DocumentPlayAutoplayRequest {
   readonly behavior?: string | null;

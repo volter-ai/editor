@@ -19,7 +19,9 @@
   "exports": {
     "./contributions/*": "./contributions/*",
     "./package.json": "./package.json",
-    "./play-script": "./src/play-script.ts"
+    "./play-script": "./src/play-script.ts",
+    "./play-context": "./src/play-context.ts",
+    "./play-runner": "./src/play-runner.ts"
   },
   "volter": {
     "contributions": [

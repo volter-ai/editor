@@ -18,7 +18,7 @@
  */
 import { connect } from '@volter/live';
 
-export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|animation] | play autoplay on [<behaviour>] [--for <seconds>] | play autoplay off  [--document <id>]';
+export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|animation] | play autoplay on [<behaviour>] [--for <seconds>] | play autoplay off | play start <name>|off  [--document <id>]';
 
 const BARE = new Set(['state', 'play', 'stop', 'pause', 'resume', 'restart']);
 
@@ -45,6 +45,10 @@ export async function play(args: readonly string[], document?: string, limit?: s
   } else if (verb === 'autoplay') {
     if (value !== 'on' && value !== 'off') usage();
     commandArgs = { on: value === 'on', ...(behavior !== undefined ? { behavior } : {}), ...(limit !== undefined ? { for: limit } : {}) };
+  } else if (verb === 'start') {
+    // Where Play (and every Restart) begins: one of the game's starts (`play.starts`), or `off`.
+    if (value === undefined) usage();
+    commandArgs = { name: value };
   } else if (verb === 'mode') {
     if (value !== undefined) commandArgs = { mode: value };
   } else usage();

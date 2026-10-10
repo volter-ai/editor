@@ -7,8 +7,9 @@
  * - BLENDER SAMPLES, THREE.JS PLAYS. Blender evaluates every animated object's transform at every
  *   scene frame (`session.py`'s `_sample_object`: its channels through `FCurve.evaluate`, with its
  *   delta transform, placed in its parent's space), and the movie is one `THREE.AnimationClip` of
- *   position, quaternion, scale (and visibility, where it is keyed) tracks on the copy's objects.
- *   A seek sets the clip's time and lets the mixer pose them.
+ *   position, quaternion, scale (and visibility, where it is keyed) tracks on the copy's objects,
+ *   played on the scene's one mixer beside the armatures (`blender-scene-mixer.ts`): `place` sets
+ *   the clips' time, the scene evaluates, `settle` places a sequence and turns the aimed objects.
  * - A CAMERA'S PROJECTION is sampled the same way (lens, sensor, shift, clip range) and fitted to
  *   the game's own frame when it is looked through.
  * - THE CAMERA AT A FRAME is the camera of the last marker at or before it that is bound to one
@@ -48,8 +49,21 @@ export interface PlayMovie {
   /** Every object it moves, by Blender name. */
   readonly objects: readonly string[];
   /** Pose every animated object at a scene frame, whole or fractional; within `scope` only those
-   *  it names, placed where it says. */
+   *  it names, placed where it says: `place`, the mixer's evaluation, `settle`. */
   pose(frame: number, scope?: MovieScope): void;
+  /** Set the frame on the mixer (nothing moves until it evaluates); null holds the movie off it, so
+   *  an evaluation for others leaves its objects where they stand (its materials still take the
+   *  `presented` frame: the presenter does not follow a material's animation). `presented` is the
+   *  frame the drawn geometry was evaluated at (Blender's own; the read's when absent): a shape key
+   *  plays relative to the value it already has there. */
+  place(frame: number | null, scope?: MovieScope, presented?: number): void;
+  /** After the mixer: a sequence carried to where the game puts it, and the aimed objects turned. */
+  settle(): void;
+  /** Its actions off the mixer. */
+  dispose(): void;
+  /** Every clip it plays (objects and cameras, materials, shape keys), as three.js tracks on the
+   *  presented objects: what an export writes (`blender-export-gltf`). */
+  clips(): readonly THREE.AnimationClip[];
   /** The objects a collection holds (recursively), by Blender name; null when the movie names no
    *  such collection. */
   collection(name: string): ReadonlySet<string> | null;
@@ -58,6 +72,10 @@ export interface PlayMovie {
   /** Look through a Blender camera as it stands at the last posed frame: its world pose and its
    *  projection, written into `camera`; false when the file has no such camera. */
   look(camera: THREE.Camera, name: string): boolean;
+  /** A camera as it stands at the last posed frame, in the shape of the frame's camera data (its
+   *  world matrix in Blender's space, by rows, and its sampled projection): what the editor's
+   *  camera view draws through while the Timeline plays. Null when the movie does not move it. */
+  cameraData(name: string): ({ name: string; type: string; sensor_fit: string; matrix: [number, number, number, number][] } & CameraProps) | null;
   /** What the movie does in Blender that a game does not play, each named once. */
   readonly warnings: readonly string[];
 }
@@ -105,20 +123,28 @@ interface MovieObject {
 }
 
 /** The scene's movie bound to the game's copy (`view`, the detached copy's view). */
-export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): PlayMovie {
+/** `mixer`: the scene's (`sceneMixer(view).mixer`); absent, the movie gets one of its own. */
+export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie, mixer = new THREE.AnimationMixer(view.root)): PlayMovie {
   const warnings: string[] = [];
   const objects: MovieObject[] = [];
-  const mixer = new THREE.AnimationMixer(view.root);
   const { start, end, fps } = data.scene;
   const frames = Math.max(1, end - start + 1);
   const times = Float32Array.from({ length: frames }, (_, i) => i / fps);
+  const unbound: string[] = [];
   for (const entry of data.objects) {
     const object = view.objectForBlenderName(entry.name);
-    if (!object) continue;
+    // (an animated object the copy does not draw by its name was dropped in silence: it is named now)
+    if (!object) { if (entry.sampled || entry.camera?.sampled) unbound.push(entry.name); continue; }
     for (const thing of entry.unsupported ?? []) warnings.push(`${entry.name}: ${thing} plays only in Blender, not in a game.`);
     const sampled = entry.sampled;
     const tracks: THREE.KeyframeTrack[] = [];
     if (sampled) {
+      // THE MOVIE MOVES IT BY ITS PARTS, as a script does (`play.find`): the presenter states each
+      // object's matrix outright (`matrixAutoUpdate = false`), so the mixer's position, rotation and
+      // scale reached no drawn matrix, and every object a cutscene moves was drawn where it stood
+      // (playtest round 29's exported film: the tap ran on, the sludge never rose, the destroyer and
+      // the Heckpods never came; cameras moved, posed from the movie directly)
+      object.matrixAutoUpdate = true;
       const column = (c: BlenderClipColumn, stride: number): [Float32Array, Float32Array] => {
         const values = float32Of(c);
         return [values.length === stride ? new Float32Array([0]) : times.slice(0, values.length / stride), values];
@@ -143,6 +169,119 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
     }
     objects.push({ data: entry, object, action, projection, projectionStart: lens?.start ?? start });
   }
+  if (unbound.length) {
+    warnings.push(`The movie animates ${unbound.length} object(s) this copy does not draw by that name, so they hold still: ${unbound.slice(0, 12).join(', ')}${unbound.length > 12 ? ', …' : ''}.`);
+  }
+  // MATERIALS AND SHAPE KEYS (`docs/SCENE-ANIMATION.md` step 5): more clips on the same mixer, placed
+  // with the objects'. A material's keyed inputs drive the presented material of its name (through one
+  // mesh that wears it: the material is one object, shared); a mesh's keyed shape keys become morph
+  // targets on its drawn geometry (each drawn vertex takes its Blender vertex's offset, `blenderVertex`,
+  // and the normals the offset gives it), driven by the value Blender gives each key there minus the
+  // value the drawn geometry already holds (its value at the presented frame, subtracted in `settle`).
+  const materialActions: THREE.AnimationAction[] = [];
+  const shapeActions: THREE.AnimationAction[] = [];
+  const shapeMeshes: { mesh: THREE.Mesh; keys: Float32Array[] }[] = [];
+  const extraClip = (name: string, tracks: THREE.KeyframeTrack[], into: THREE.AnimationAction[]): void => {
+    if (!tracks.length) return;
+    const action = mixer.clipAction(new THREE.AnimationClip(name, (frames - 1) / fps, tracks));
+    action.setLoop(THREE.LoopOnce, 1);
+    action.clampWhenFinished = true;
+    action.timeScale = 0;
+    into.push(action);
+  };
+  const extras = (): THREE.AnimationAction[] => [...materialActions, ...shapeActions];
+  /** A key's value at a scene frame, from its sampled column. */
+  const valueAt = (values: Float32Array, frame: number): number =>
+    values.length <= 1 ? values[0] ?? 0 : values[Math.max(0, Math.min(values.length - 1, Math.round(frame - start)))]!;
+  const timesOf = (values: Float32Array, stride: number): Float32Array =>
+    values.length === stride ? new Float32Array([0]) : times.slice(0, values.length / stride);
+  for (const entry of data.materials ?? []) {
+    let path: string | null = null;
+    let material: THREE.Material | null = null;
+    view.root.traverse((object) => {
+      const mesh = object as THREE.Mesh;
+      if (path || !mesh.isMesh) return;
+      const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const index = list.findIndex((one) => one?.name === entry.name);
+      if (index < 0) return;
+      path = Array.isArray(mesh.material) ? `${mesh.uuid}.material[${index}]` : `${mesh.uuid}.material`;
+      material = list[index]!;
+    });
+    const worn = material as THREE.Material | null;
+    if (!path || !worn) { warnings.push(`The keyed material "${entry.name}" is not drawn here, so its animation does not play.`); continue; }
+    const tracks: THREE.KeyframeTrack[] = [];
+    if (entry.color) { const values = float32Of(entry.color); tracks.push(new THREE.ColorKeyframeTrack(`${path}.color`, timesOf(values, 3), values)); }
+    if (entry.emissive) {
+      const values = float32Of(entry.emissive);
+      tracks.push(new THREE.ColorKeyframeTrack(`${path}.emissive`, timesOf(values, 3), values));
+      if ('emissiveIntensity' in worn) (worn as THREE.MeshStandardMaterial).emissiveIntensity = 1;
+    }
+    if (entry.opacity) {
+      const values = float32Of(entry.opacity);
+      tracks.push(new THREE.NumberKeyframeTrack(`${path}.opacity`, timesOf(values, 1), values));
+      worn.transparent = true;
+      worn.needsUpdate = true;
+    }
+    extraClip(`movie-material:${entry.name}`, tracks, materialActions);
+  }
+  for (const entry of data.shapes ?? []) {
+    const owner = view.objectForBlenderName(entry.object);
+    if (!owner) continue;
+    if (!entry.mapped) { warnings.push(`${entry.object}: its shape keys play only in Blender, not in a game: its modifiers change its vertices.`); continue; }
+    const meshes: THREE.Mesh[] = [];
+    owner.traverse((object) => { const mesh = object as THREE.Mesh; if (mesh.isMesh && mesh.geometry.getAttribute('blenderVertex')) meshes.push(mesh); });
+    for (const mesh of meshes) {
+      const geometry = mesh.geometry;
+      const source = geometry.getAttribute('blenderVertex') as THREE.BufferAttribute;
+      const drawn = geometry.getAttribute('position').count;
+      const morphs: THREE.BufferAttribute[] = [];
+      const normals: THREE.BufferAttribute[] = [];
+      const dictionary: Record<string, number> = {};
+      const tracks: THREE.KeyframeTrack[] = [];
+      const keys: Float32Array[] = [];
+      const position = geometry.getAttribute('position') as THREE.BufferAttribute;
+      const normal = geometry.getAttribute('normal') as THREE.BufferAttribute | undefined;
+      let fits = true;
+      entry.keys.forEach((key, k) => {
+        const delta = float32Of(key.delta);
+        const offsets = new Float32Array(drawn * 3);
+        for (let j = 0; j < drawn; j++) {
+          const from = source.getX(j);
+          if (from >= entry.vertices) { fits = false; continue; }
+          offsets[j * 3] = delta[from * 3]!;
+          offsets[j * 3 + 1] = delta[from * 3 + 1]!;
+          offsets[j * 3 + 2] = delta[from * 3 + 2]!;
+        }
+        const morph = new THREE.BufferAttribute(offsets, 3);
+        morph.name = key.name;
+        morphs.push(morph);
+        // THE NORMALS THE OFFSET GIVES: the shape's own, less the drawn ones (smooth over the drawn faces)
+        if (normal) {
+          const shaped = new THREE.BufferGeometry();
+          shaped.setAttribute('position', new THREE.BufferAttribute(Float32Array.from(position.array as Float32Array, (v, i) => v + offsets[i]!), 3));
+          if (geometry.index) shaped.setIndex(geometry.index);
+          shaped.computeVertexNormals();
+          const turned = shaped.getAttribute('normal') as THREE.BufferAttribute;
+          normals.push(new THREE.BufferAttribute(Float32Array.from(turned.array as Float32Array, (v, i) => v - (normal.array as Float32Array)[i]!), 3));
+          shaped.dispose();
+        }
+        dictionary[key.name] = k;
+        const values = float32Of(key.values);
+        keys.push(values);
+        // (by the key's name, through the mesh's dictionary: an exporter writes the target by it)
+        tracks.push(new THREE.NumberKeyframeTrack(`${mesh.uuid}.morphTargetInfluences[${key.name}]`, timesOf(values, 1), values));
+      });
+      if (!fits) { warnings.push(`${entry.object}: its drawn vertices do not match its mesh, so its shape keys play only in Blender.`); continue; }
+      geometry.morphAttributes['position'] = morphs;
+      if (normal && normals.length === morphs.length) geometry.morphAttributes['normal'] = normals;
+      geometry.morphTargetsRelative = true;
+      mesh.updateMorphTargets();
+      mesh.morphTargetDictionary = dictionary;
+      for (const one of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) one.needsUpdate = true;
+      shapeMeshes.push({ mesh, keys });
+      extraClip(`movie-shapes:${entry.object}:${mesh.uuid}`, tracks, shapeActions);
+    }
+  }
   // PARENTS BEFORE CHILDREN, so an object aimed by a constraint is turned from its parent's pose.
   const depth = (object: THREE.Object3D): number => { let d = 0; for (let at = object.parent; at; at = at.parent) d += 1; return d; };
   const aiming = objects
@@ -153,6 +292,10 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
   const cutMarkers = markers.filter((marker) => marker.camera !== null && !(byName.get(marker.camera)?.data.camera?.renderHidden ?? false));
 
   let frameNow = data.scene.current;
+  /** What the last `place` asked for (null: held off the mixer), for `settle`. */
+  let placed: { readonly scope: MovieScope | undefined } | null = null;
+  /** The frame the drawn geometry was evaluated at: Blender's own (the director says), else the read's. */
+  let presentedFrame = data.scene.current;
   const collections = new Map(Object.entries(data.collections ?? {}).map(([name, names]) => [name, new Set(names)]));
   /** A still object's pose as the file has it, read before it was first placed. */
   const stills = new Map<THREE.Object3D, THREE.Matrix4>();
@@ -233,7 +376,29 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
     warnings,
     collection: (name) => collections.get(name) ?? null,
     pose(frame, scope) {
+      this.place(frame, scope);
+      mixer.update(0);
+      this.settle();
+    },
+    place(frame, scope, presented) {
+      presentedFrame = presented ?? presentedFrame;
+      if (frame === null) {
+        for (const entry of objects) if (entry.action) entry.action.enabled = false;
+        for (const action of shapeActions) action.enabled = false;
+        for (const { mesh } of shapeMeshes) mesh.morphTargetInfluences?.fill(0);
+        // (the presenter draws a material's file value, not its animation: the movie keeps it)
+        const held = Math.max(0, Math.min(end, presentedFrame) - start) / fps;
+        for (const action of materialActions) {
+          action.enabled = true;
+          if (!action.isRunning()) action.play();
+          action.paused = false;
+          action.time = held;
+        }
+        placed = null;
+        return;
+      }
       frameNow = frame;
+      placed = { scope };
       const inScope = (entry: MovieObject): boolean => !scope?.only || scope.only.has(entry.data.name);
       const time = Math.max(0, Math.min(end, frame) - start) / fps;
       for (const entry of objects) {
@@ -245,7 +410,25 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
         entry.action.paused = false;
         entry.action.time = time;
       }
-      mixer.update(0);
+      // (materials and shape keys play in the whole movie; a sequence scoped to a collection leaves them)
+      for (const action of extras()) {
+        action.enabled = !scope?.only;
+        if (!action.enabled) continue;
+        if (!action.isRunning()) action.play();
+        action.paused = false;
+        action.time = time;
+      }
+    },
+    settle() {
+      if (!placed) return;
+      // SHAPE KEYS relative to what the drawn geometry already holds (its value at the presented frame)
+      for (const { mesh, keys } of shapeMeshes) {
+        const influences = mesh.morphTargetInfluences;
+        if (!influences) continue;
+        keys.forEach((values, k) => { influences[k] = (influences[k] ?? 0) - valueAt(values, presentedFrame); });
+      }
+      const scope = placed.scope;
+      const inScope = (entry: MovieObject): boolean => !scope?.only || scope.only.has(entry.data.name);
       // PLACED: every moving object at the top of the sequence (its parent not in it) is carried by
       // the turn and shift that takes the anchor to where `at` stands in the game.
       const anchor = scope?.place ? anchorOf(scope.place.anchor) : null;
@@ -275,6 +458,25 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
       }
       constrain(inScope);
     },
+    clips() {
+      return [...objects.flatMap((entry) => (entry.action ? [entry.action.getClip()] : [])), ...extras().map((action) => action.getClip())];
+    },
+    dispose() {
+      for (const entry of objects) {
+        if (!entry.action) continue;
+        const clip = entry.action.getClip();
+        entry.action.stop();
+        mixer.uncacheAction(clip);
+        mixer.uncacheClip(clip);
+      }
+      for (const action of extras()) {
+        const clip = action.getClip();
+        action.stop();
+        mixer.uncacheAction(clip);
+        mixer.uncacheClip(clip);
+      }
+      placed = null;
+    },
     cameraAt(frame) {
       // Compared with the whole frame, as Blender's playback compares it.
       const now = Math.floor(frame);
@@ -285,6 +487,16 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
         if (!first || marker.frame < first.frame) first = marker;
       }
       return (best ?? first)?.camera ?? data.scene.camera;
+    },
+    cameraData(name) {
+      const entry = byName.get(name);
+      if (!entry?.data.camera) return null;
+      view.root.updateMatrixWorld(true);
+      entry.object.updateWorldMatrix(true, false);
+      const e = view.root.matrixWorld.clone().invert().multiply(entry.object.matrixWorld).elements;
+      const matrix = [0, 1, 2, 3].map((r) => [e[r]!, e[4 + r]!, e[8 + r]!, e[12 + r]!] as [number, number, number, number]);
+      const own = entry.data.camera;
+      return { name, type: own.type, sensor_fit: own.sensor_fit, matrix, ...projectionOf(entry) };
     },
     look(camera, name) {
       const entry = byName.get(name);
