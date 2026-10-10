@@ -249,7 +249,7 @@ class Mirror {
   }
 }
 
-class TabSession {
+export class TabSession {
   #client: EditorClient | null = null;
   #connecting: Promise<EditorClient> | null = null;
   #origin: string | null = null;
@@ -455,4 +455,67 @@ export async function serveBlenderMcp(
   });
 
   await server.connect(new StdioServerTransport());
+}
+
+/**
+ * A FILM OF THE TIMELINE (`cyclotron render-movie`): the frames from `from` to `to` (marker names or
+ * frame numbers; the scene's range by default) rendered by Blender's own render on the three.js
+ * engine, a chunk at a time, at the scene's frame rate and resolution (or `width`), encoded by the
+ * editor tab into a WebM, written to `out`. The camera is Blender's: the scene camera, cut at markers
+ * bound to cameras, as Render Animation cuts.
+ */
+export async function renderMovie(project: string, options: {
+  readonly out: string; readonly from?: string | undefined; readonly to?: string | undefined; readonly width?: number | undefined; readonly chunk?: number | undefined;
+}): Promise<void> {
+  const tab = new TabSession(project, async () => {});
+  const probe = await tab.command<{ result: string }>('blender-execute', { code: `
+import bpy, json
+s = bpy.context.scene
+r = s.render
+print(json.dumps({"start": s.frame_start, "end": s.frame_end, "fps": r.fps / (r.fps_base or 1), "width": r.resolution_x, "height": r.resolution_y,
+  "percent": r.resolution_percentage, "camera": s.camera.name if s.camera else None,
+  "markers": [{"name": m.name, "frame": m.frame} for m in s.timeline_markers]}))
+` });
+  const text = probe.result.replace(/^Code executed successfully: ?/, '').trim();
+  if (/^Error executing code:/.test(probe.result)) throw new Error(`Blender could not read the scene: ${probe.result}`);
+  const scene = JSON.parse(text.slice(text.indexOf('{'))) as { start: number; end: number; fps: number; width: number; height: number; percent: number;
+    camera: string | null; markers: { name: string; frame: number }[] };
+  const frameOf = (at: string | undefined, fallback: number): number => {
+    if (at === undefined) return fallback;
+    if (/^-?\d+$/.test(at)) return Number(at);
+    const marker = scene.markers.find((one) => one.name === at);
+    if (!marker) throw new Error(`The Timeline has no marker "${at}"; it has ${scene.markers.map((one) => `"${one.name}"`).join(', ') || 'none'}.`);
+    return marker.frame;
+  };
+  const first = frameOf(options.from, scene.start);
+  const last = frameOf(options.to, scene.end);
+  if (last < first) throw new Error(`It ends (frame ${last}) before it starts (frame ${first}).`);
+  if (!scene.camera && !scene.markers.some((m) => m.frame <= first)) console.error('warning — the scene has no camera; Blender renders through the scene camera or a marker-bound one.');
+  const scale = scene.percent / 100;
+  const width = options.width ?? Math.round(scene.width * scale);
+  const height = Math.round(width * (scene.height / scene.width));
+  const { codec } = await tab.command<{ codec: string }>('blender-movie-begin', { width, height, fps: scene.fps });
+  const count = last - first + 1;
+  console.error(`render-movie: frames ${first}-${last} (${count}) at ${width}x${height}, ${scene.fps} fps, ${codec}, through Blender on the three.js engine`);
+  const chunk = Math.max(1, options.chunk ?? 12);
+  const began = Date.now();
+  for (let f = first; f <= last; f += chunk) {
+    const frames = Array.from({ length: Math.min(chunk, last - f + 1) }, (_, i) => f + i);
+    const { encoded, timing } = await tab.command<{ encoded: number; timing: { executeMs: number; stageMs: number; applyMs: number; photoMs: number; encodeMs: number } }>('blender-movie-frames', { frames });
+    const seconds = (Date.now() - began) / 1000;
+    const ms = (n: number) => `${(n / 1000).toFixed(2)} s`;
+    // WHERE A FRAME'S TIME GOES: Blender's render call (its evaluation and export, and the tab's part
+    // inside it), and of the tab's part the transfer, the build into the photograph view and the picture.
+    console.error(`  ${encoded}/${count} frames (${(seconds / encoded).toFixed(1)} s a frame: render call ${ms(timing.executeMs)} = transfer ${ms(timing.stageMs)}`
+      + ` + build ${ms(timing.applyMs)} + photograph ${ms(timing.photoMs)} + Blender's own ${ms(Math.max(0, timing.executeMs - timing.stageMs - timing.applyMs - timing.photoMs))}; encode ${ms(timing.encodeMs)})`);
+  }
+  const transferId = randomUUID();
+  const done = await tab.command<{ bytes: number; frames: number; codec: string }>('blender-movie-end', { transferId });
+  const spooled = await fetch(`${await tab.origin()}/__editor/blender-file?id=${transferId}`);
+  if (!spooled.ok) throw new Error(`The film's transfer failed: ${spooled.status}`);
+  const bytes = Buffer.from(await spooled.arrayBuffer());
+  mkdirSync(dirname(options.out), { recursive: true });
+  writeFileSync(options.out, bytes);
+  console.log(options.out);
+  console.error(`render-movie: ${done.frames} frames, ${(bytes.length / 1e6).toFixed(1)} MB, ${done.codec}`);
 }

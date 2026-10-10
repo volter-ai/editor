@@ -103,6 +103,13 @@ export const commands: CommandContribution['commands'] = {
   // handlers give.
   'blender-node-view': verb('none'),
   'blender-outliner-set': verb('always', 60_000),
+  // A FILM, RENDERED (`cyclotron render-movie`): begin an encoder, render a chunk of frames
+  // through Blender on the three.js engine into it, end and spool the WebM. The frames are
+  // Blender's own renders; each chunk puts the scene's render settings and frame back, so
+  // none presents a change to the model.
+  'blender-movie-begin': verb('none', 60_000),
+  'blender-movie-frames': verb('none', 30 * 60_000),
+  'blender-movie-end': verb('none', 10 * 60_000),
   // A read of whether this tab HAS a session; it never starts one — and the
   // one verb that answers before a project session exists.
   'blender-status': verb('none'),

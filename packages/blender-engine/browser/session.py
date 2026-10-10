@@ -2503,7 +2503,7 @@ def _vertical_extent(cam, width, height):
     return math.degrees(2.0 * math.atan(extent / (2.0 * float(cam.lens))))
 
 
-def _photograph(depsgraph, width, height, linear=False):
+def _photograph(depsgraph, width, height, linear=False, viewport=False):
     """three.js IS the renderer: the render is a photograph of the scene the
     engine holds, taken through the scene's own camera at `scene.render`'s
     exact resolution. `bpy.ops.render.render` semantics are the contract."""
@@ -2558,13 +2558,24 @@ def _photograph(depsgraph, width, height, linear=False):
     # result is what a render leaves, and it holds scene-linear pixels.
     if linear:
         render["linear"] = True
-    answer = SESSION.photograph(
-        depsgraph, {"position": position, "target": target, "up": up, "render": render}
-    )
+    pose = {"position": position, "target": target, "up": up, "render": render}
+    # A VIEWPORT PHOTOGRAPH is taken of the scene the tab already presents, through the scene camera:
+    # the session's ordinary present, which ships only what changed since the last frame. A film's
+    # frames (`render-movie`) differ by a few transforms, and the render path re-exported the whole
+    # scene for each (a fresh render session every time: 4.8 s a frame on a 560-object level).
+    answer = SESSION.present(pose) if viewport else SESSION.photograph(depsgraph, pose)
     if not isinstance(answer, dict) or "base64" not in answer:
         raise RuntimeError("The renderer did not answer with a photograph")
     _assert_photographed_from(answer.get("camera"), position, target, up)
     return base64.b64decode(answer["base64"]), render, answer
+
+
+def photograph_frame(width, height):
+    """A FILM'S FRAME (`render-movie`): the scene at its current frame, as the viewport presents it,
+    photographed through the scene camera (marker cuts included, as Blender switches the camera on a
+    frame change) at `width` x `height`, with the scene's view transform. Answers the PNG's bytes."""
+    png, _render, _answer = _photograph(bpy.context.evaluated_depsgraph_get(), width, height, viewport=True)
+    return png
 
 
 def _assert_photographed_from(reported, position, target, up):

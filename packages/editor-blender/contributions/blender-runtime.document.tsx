@@ -82,6 +82,10 @@ import { playAnimation, type PlayAnimation, type PlayClipCache } from './blender
 
 /** Clip reads per model document, kept across Plays (`PlayClipCache`). */
 const playClipCaches = new Map<string, PlayClipCache>();
+/** A playing game's camera starts on these clip planes (`projection.owned`): near enough for a
+ *  character a step from the camera, and never so far that the depth buffer cannot tell surfaces apart. */
+const PLAY_CAMERA_NEAR = 0.1;
+const PLAY_CAMERA_FAR = 20_000;
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
 import { noteModelDocument } from '../src/play-mode';
 import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/sdk/kit/document-play-extension';
@@ -905,6 +909,7 @@ function BlenderViewportArea({
     let preparing = false;
     let stopScript: (() => void) | null = null;
     let orbit: { enabled: boolean } | null = null;
+    let projection: { owned: boolean } | null = null;
     let animation: PlayAnimation | null = null;
     const start = (): void => {
       if (stopScript || preparing || stopped) return;
@@ -913,6 +918,19 @@ function BlenderViewportArea({
       preparing = true;
       orbit = stage.rig().orbit;
       orbit.enabled = false;
+      // THE GAME OWNS ITS CAMERA'S PROJECTION: the stage stops fitting the clip planes to the file
+      // (which pushed `near` out with the file's size), and the game starts from planes fit for a
+      // game: 0.1 m near, the fitted reach as far, no more than 20 km. A script may set its own.
+      projection = stage.rig().projection ?? null;
+      if (projection) {
+        projection.owned = true;
+        const drawn = stage.rig().drawCamera() as THREE.PerspectiveCamera;
+        if (drawn.isPerspectiveCamera) {
+          drawn.near = PLAY_CAMERA_NEAR;
+          drawn.far = Math.min(Math.max(drawn.far, 1000), PLAY_CAMERA_FAR);
+          drawn.updateProjectionMatrix();
+        }
+      }
       // THE COPY'S CHARACTERS ANIMATE: its view bound their skins from the copied frame, and each
       // armature plays the action the file assigns it until the game sets another
       // (`blender-play-skin.ts`). Nothing is read before the game starts.
@@ -1057,6 +1075,7 @@ function BlenderViewportArea({
       animation = null;
       layers.remove();
       if (orbit) orbit.enabled = true;
+      if (projection) { projection.owned = false; projection = null; }
     };
   }, [playing, documentId, blend, view]);
   /**

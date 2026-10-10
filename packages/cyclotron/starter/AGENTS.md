@@ -292,6 +292,10 @@ behavior-only repair preserves the established appearance.
   effects and inventory, that input while paused preserves it, and that resume
   restores normal controls. Presenting another editor document can stop Play;
   it does not verify an in-game pause.
+- The game's camera is the script's, projection included: Play starts it at a
+  0.1 m near plane and stops fitting its clip planes to the file, so a set far
+  from the level cannot hide what is next to the camera. Set `near`, `far` and
+  `fov` yourself when the game needs other values.
 - Make meaningful game state observable through the HUD or a read-only
   inspection surface: phase, simulation time, participants' positions and
   signed movement, progression, terminal states and inventory as applicable.
@@ -313,6 +317,24 @@ behavior-only repair preserves the established appearance.
 - Give every action that may play a fake user (`action.use_fake_user = True`):
   Blender drops an action nothing uses when the file saves, so an unassigned
   clip library vanishes on the next save.
+
+## Cutscenes and films
+
+- A moment inside the game (a launch, a set piece, an ultimate, an emote) plays
+  live in the game. Author it on the Timeline in a collection of its own (keyed
+  objects and cameras, markers bound to cameras, marker names for its events)
+  and play it from the script with `play.cutscene(...)` (it takes the camera) or
+  `play.sequence(..., { collection, at, camera })` (only that collection moves,
+  placed at a game object). Watch it with `play-log --kind cutscene`.
+- A film as a file (an intro, a trailer) is rendered, not captured:
+  `npx --no-install cyclotron render-movie --from <marker> --to <marker> --out <file>.webm`
+  renders the span through Blender's Render Animation on the three.js engine,
+  a frame at a time at the scene's resolution and frame rate, and encodes it.
+- Never assemble footage from `capture` or `play step` loops, or with an
+  external encoder: a capture is evidence of what the person sees, and a loop
+  of them holds the person's editor for hours.
+- Light a film's set with emissive materials and the scene's own light; a
+  point lamp is lit on every surface of a game's level in every frame.
 
 ## Characters
 

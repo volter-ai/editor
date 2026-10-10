@@ -54,6 +54,7 @@ import {
   type LinearCaptureFrame,
 } from '@volter/editor-threejs/capture/scene';
 import {blenderRenderCamera} from '@volter/blender-engine/browser/three/blender-render-camera';
+import { writeWebm, type WebmFrame } from './webm-writer';
 import * as THREE from 'three';
 import { blenderEngineSelection, refreshBlenderOutliner } from '../contributions/blender-outliner-model';
 import {
@@ -548,6 +549,187 @@ export async function blenderExecute(code: string, history = true, label = 'Blen
   };
 }
 
+// ---------------------------------------------------------------- a film, rendered
+
+/** WHERE A RENDER'S TIME GOES, one record per photograph a render or a film takes: the frame's
+ *  transfer (from its first staged part to its present; none when nothing new was staged), building
+ *  it into the view it is photographed from, and the photograph itself. Read by `render-movie`
+ *  beside Blender's own time, so a slow film says which side is slow. */
+const renderTimings: { stageMs: number; applyMs: number; photoMs: number }[] = [];
+/** When the frame being transferred staged its first part, render or viewport; taken at its present. */
+let frameStagedAt: number | null = null;
+
+/** The film being encoded (`blender-movie-*`), one at a time. */
+let movie: {
+  readonly encoder: VideoEncoder;
+  readonly frames: WebmFrame[];
+  readonly width: number;
+  readonly height: number;
+  readonly fps: number;
+  readonly codec: 'V_VP8' | 'V_VP9';
+  /** The photographs of the frames rendered and not yet encoded, in order (base64 PNG). */
+  readonly photographs: string[];
+  count: number;
+  error: string | null;
+} | null = null;
+
+/**
+ * A FILM FRAME AS VIDEO IS STORED: BT.709 Y'CbCr 4:2:0 in the limited range every player expects, made
+ * here from the photograph's pixels. Handed an RGB image, Chrome's encoder marks its VP9 full range,
+ * and Chrome's own player then refuses the file (PIPELINE_ERROR_DECODE on the first frame; the same
+ * stream with only that flag set to limited plays).
+ */
+let frameCanvas: OffscreenCanvas | null = null;
+function videoFrameOf(image: ImageBitmap, width: number, height: number, timestamp: number, duration: number): VideoFrame {
+  frameCanvas ??= new OffscreenCanvas(width, height);
+  if (frameCanvas.width !== width || frameCanvas.height !== height) { frameCanvas.width = width; frameCanvas.height = height; }
+  const context = frameCanvas.getContext('2d', { willReadFrequently: true })!;
+  context.drawImage(image, 0, 0, width, height);
+  const rgba = context.getImageData(0, 0, width, height).data;
+  const cw = width / 2, ch = height / 2;
+  const planes = new Uint8Array(width * height + 2 * cw * ch);
+  const u0 = width * height, v0 = u0 + cw * ch;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      planes[y * width + x] = Math.round(16 + (219 / 255) * (0.2126 * rgba[i]! + 0.7152 * rgba[i + 1]! + 0.0722 * rgba[i + 2]!));
+    }
+  }
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      let r = 0, g = 0, b = 0;
+      for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
+        const i = ((2 * y + dy) * width + 2 * x + dx) * 4;
+        r += rgba[i]!; g += rgba[i + 1]!; b += rgba[i + 2]!;
+      }
+      r /= 4; g /= 4; b /= 4;
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      planes[u0 + y * cw + x] = Math.round(128 + (224 / 255) * ((b - luma) / 1.8556));
+      planes[v0 + y * cw + x] = Math.round(128 + (224 / 255) * ((r - luma) / 1.5748));
+    }
+  }
+  return new VideoFrame(planes, {
+    format: 'I420', codedWidth: width, codedHeight: height, timestamp, duration,
+    colorSpace: { primaries: 'bt709', transfer: 'bt709', matrix: 'bt709', fullRange: false },
+  });
+}
+
+async function movieBegin(width: number, height: number, fps: number): Promise<{ codec: string }> {
+  if (typeof VideoEncoder === 'undefined') throw new Error('This browser has no WebCodecs VideoEncoder, which render-movie encodes with.');
+  // (VP9 and VP8 want even sides)
+  const w = Math.max(2, Math.round(width / 2) * 2), h = Math.max(2, Math.round(height / 2) * 2);
+  const base = { width: w, height: h, framerate: fps, bitrate: Math.round(w * h * fps * 0.12) };
+  // THE LEVEL FITS THE PICTURE: level 1.0 (`vp09.00.10.08`) is for tiny video, and Chrome's player
+  // refused a 1280x720 film encoded under it (PIPELINE_ERROR_DECODE on the first frame; ffmpeg read it)
+  const pixels = w * h;
+  const level = pixels <= 1280 * 720 ? '31' : pixels <= 1920 * 1080 ? '41' : '51';
+  const vp9Codec = `vp09.00.${level}.08`;
+  const vp9 = await VideoEncoder.isConfigSupported({ ...base, codec: vp9Codec }).catch(() => ({ supported: false }));
+  const codec = vp9.supported ? vp9Codec : 'vp8';
+  const frames: WebmFrame[] = [];
+  const state = { encoder: null as unknown as VideoEncoder, frames, width: w, height: h, fps, codec: (vp9.supported ? 'V_VP9' : 'V_VP8') as 'V_VP8' | 'V_VP9', photographs: [] as string[], count: 0, error: null as string | null };
+  state.encoder = new VideoEncoder({
+    output: (chunk) => {
+      const data = new Uint8Array(chunk.byteLength);
+      chunk.copyTo(data);
+      frames.push({ data, ms: chunk.timestamp / 1000, key: chunk.type === 'key' });
+    },
+    error: (error) => { state.error = error.message; },
+  });
+  state.encoder.configure({ ...base, codec });
+  movie?.encoder.close();
+  movie = state;
+  return { codec };
+}
+
+async function movieFrames(numbers: readonly number[]): Promise<{ encoded: number; timing: { executeMs: number; stageMs: number; applyMs: number; photoMs: number; encodeMs: number } }> {
+  const film = movie;
+  if (!film) throw new Error('No film is being rendered: blender-movie-begin first.');
+  // ONE CALL TAKES THE CHUNK: each frame set, then photographed as the viewport presents it through
+  // the scene camera (session.py's `photograph_frame`): the present ships only what moved.
+  const code = `
+import bpy, sys
+photograph = next(m.photograph_frame for m in list(sys.modules.values()) if hasattr(m, "photograph_frame"))
+s = bpy.context.scene
+kept = s.frame_current
+try:
+    for f in ${JSON.stringify(numbers)}:
+        s.frame_set(f)
+        photograph(${film.width}, ${film.height})
+finally:
+    s.frame_set(kept)
+`;
+  const timedFrom = renderTimings.length;
+  const executeAt = performance.now();
+  const answer = await blenderExecute(code, false, 'render-movie');
+  const executeMs = performance.now() - executeAt;
+  const taken = renderTimings.slice(timedFrom);
+  const encodeAt = performance.now();
+  if (!answer.executed) throw new Error(`Blender could not render frames ${numbers[0]}-${numbers.at(-1)}: ${answer.error}`);
+  const shots = film.photographs.splice(0);
+  if (shots.length !== numbers.length) throw new Error(`Blender rendered ${numbers.length} frames and ${shots.length} photographs were taken.`);
+  for (const shot of shots) {
+    const binary = atob(shot);
+    const png = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    const bitmap = await createImageBitmap(new Blob([png as BlobPart], { type: 'image/png' }));
+    const at = (film.count * 1_000_000) / film.fps;
+    const frame = videoFrameOf(bitmap, film.width, film.height, at, 1_000_000 / film.fps);
+    film.encoder.encode(frame, { keyFrame: film.count % Math.max(1, Math.round(film.fps * 2)) === 0 });
+    frame.close();
+    bitmap.close();
+    film.count += 1;
+    while (film.encoder.encodeQueueSize > 4) await new Promise((done) => film.encoder.addEventListener('dequeue', done, { once: true }));
+    if (film.error) throw new Error(`The video encoder failed: ${film.error}`);
+  }
+  const mean = (pick: (t: (typeof taken)[number]) => number): number => (taken.length ? taken.reduce((n, t) => n + pick(t), 0) / taken.length : 0);
+  const per = numbers.length || 1;
+  return { encoded: film.count, timing: { executeMs: executeMs / per, stageMs: mean((t) => t.stageMs), applyMs: mean((t) => t.applyMs), photoMs: mean((t) => t.photoMs), encodeMs: (performance.now() - encodeAt) / per } };
+}
+
+/**
+ * A FILM IS DONE WHEN IT PLAYS: the file is played here, in the browser that made it, before
+ * render-movie reports it written. A stream every decoder but Chrome's read (full-range VP9) was
+ * reported done and the game's boot screen skipped it in silence.
+ */
+async function assertPlayable(bytes: Uint8Array): Promise<void> {
+  const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'video/webm' }));
+  const video = document.createElement('video');
+  video.muted = true;
+  video.src = url;
+  try {
+    await video.play();
+    const deadline = performance.now() + 10_000;
+    while (video.currentTime < Math.min(0.5, (video.duration || 1) / 2) && !video.ended) {
+      if (video.error) break;
+      if (performance.now() > deadline) throw new Error('the film did not start playing within 10 s');
+      await new Promise((done) => setTimeout(done, 50));
+    }
+    if (video.error) throw new Error(video.error.message || `media error ${video.error.code}`);
+  } catch (thrown) {
+    throw new Error(`render-movie wrote a film this browser cannot play: ${thrown instanceof Error ? thrown.message : String(thrown)}`);
+  } finally {
+    video.pause();
+    video.removeAttribute('src');
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function movieEnd(transferId: string): Promise<{ bytes: number; frames: number; codec: string }> {
+  const film = movie;
+  if (!film) throw new Error('No film is being rendered.');
+  movie = null;
+  await film.encoder.flush();
+  film.encoder.close();
+  if (film.error) throw new Error(`The video encoder failed: ${film.error}`);
+  const bytes = writeWebm({ codec: film.codec, width: film.width, height: film.height, durationMs: (film.count * 1000) / film.fps }, film.frames);
+  await assertPlayable(bytes);
+  const posted = await fetch(`/__editor/blender-file?id=${encodeURIComponent(transferId)}`, {
+    method: 'POST', headers: { 'content-type': 'video/webm' }, body: new Blob([bytes as BlobPart]),
+  });
+  if (!posted.ok) throw new Error(`Transfer ${transferId} was refused: ${posted.status}`);
+  return { bytes: bytes.length, frames: film.count, codec: film.codec };
+}
+
 /**
  * A Save As the worker reported (`BlenderRuntimeOptions.documentMoved`) that the open Model tab
  * has not followed yet. Taken by the {@link blenderExecute} whose script moved it, once that
@@ -974,6 +1156,7 @@ export function blenderRuntime(): BlenderRuntime {
   const discardStreamedFrame = () => {
     const staged = streamedFrame;
     streamedFrame = null;
+    frameStagedAt = null;
     if (staged) staged.view.stageFrame({ session: staged.session, revision: staged.revision, abort: true });
     discardRenderFrame();
   };
@@ -1022,6 +1205,7 @@ export function blenderRuntime(): BlenderRuntime {
       if (part.evaluation === 'render') {
         if (!renderFrame) {
           if (part.mesh !== undefined || part.image !== undefined) throw new Error('Render resource arrived before its frame');
+          frameStagedAt = performance.now();
           const detached = BlenderRuntimeView.forPhotograph();
           view.root.updateWorldMatrix(true, false);
           detached.root.matrix.copy(view.root.matrixWorld);
@@ -1035,6 +1219,7 @@ export function blenderRuntime(): BlenderRuntime {
       if (renderFrame) throw new Error('Viewport frame arrived during render transfer');
       if (streamedFrame && streamedFrame.view !== view)
         throw new Error('Blender presenter changed during frame transfer');
+      if (!streamedFrame) frameStagedAt = performance.now();
       view.stageFrame(part);
       streamedFrame = { view, session: part.session, revision: part.revision };
     },
@@ -1077,10 +1262,14 @@ export function blenderRuntime(): BlenderRuntime {
       // A document that answers `applyFrame` without one reports no `held` at
       // all, rather than a wrong `null`.
       const endApply = beginBlenderWork('applying frame to Model');
+      const applyAt = performance.now();
       const applied = (() => {
         try { return presenter.applyFrame(frame) as { held?: unknown } | null | undefined; }
         finally { endApply(); }
       })();
+      const appliedAt = performance.now();
+      const stagedAt = frameStagedAt;
+      frameStagedAt = null;
       streamedFrame = null;
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
@@ -1186,7 +1375,16 @@ export function blenderRuntime(): BlenderRuntime {
             orthographic: render.orthographic,
           },
         });
+        const photoAt = performance.now();
         const display = await photographSnapshot(scene, renderCamera, snapshot, render, assertBinding);
+        // A FILM BEING RENDERED keeps each photograph as it is taken: the encoder reads it here,
+        // never back out of Blender's filesystem (that round trip cost 3.5 s a frame).
+        if (movie) movie.photographs.push(display.base64);
+        // (a film's frames are viewport photographs, `rendering` null: they are timed too)
+        if (rendering || movie) {
+          renderTimings.push({ stageMs: stagedAt === null ? 0 : applyAt - stagedAt, applyMs: appliedAt - applyAt, photoMs: performance.now() - photoAt });
+          if (renderTimings.length > 64) renderTimings.shift();
+        }
         return answer({ ...display, camera: photographedFrom });
       } finally {
         photographing = false;
@@ -1254,6 +1452,12 @@ const string = (cmd: Record<string, unknown>, key: string): string => {
   const value = cmd[key];
   if (typeof value !== 'string')
     throw new Error(`${String(cmd['type'])} requires a string "${key}"`);
+  return value;
+};
+const number = (cmd: Record<string, unknown>, key: string): number => {
+  const value = cmd[key];
+  if (typeof value !== 'number' || !Number.isFinite(value))
+    throw new Error(`${String(cmd['type'])} requires a number "${key}"`);
   return value;
 };
 
@@ -1552,6 +1756,17 @@ export async function handleBlenderCommand(cmd: {
           return { ok: false, error: `Transfer ${transfer} was refused: ${posted.status}` };
         return { ok: true, data: { bytes: bytes.length } };
       }
+      // A FILM, RENDERED (`cyclotron render-movie`): the Timeline's frames through Blender's own render
+      // on the three.js engine (VOLTER_THREE), each PNG read back and handed to the browser's video
+      // encoder, the WebM written here and spooled to the CLI as a file is (`blender-read-file`).
+      case 'blender-movie-begin':
+        return { ok: true, data: await movieBegin(number(cmd, 'width'), number(cmd, 'height'), number(cmd, 'fps')) };
+      case 'blender-movie-frames': {
+        const frames = (cmd['frames'] as unknown[]).map((f) => Number(f));
+        return { ok: true, data: await movieFrames(frames) };
+      }
+      case 'blender-movie-end':
+        return { ok: true, data: await movieEnd(string(cmd, 'transferId')) };
       case 'blender-write-file': {
         const binary = atob(string(cmd, 'base64'));
         const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
